@@ -2,7 +2,7 @@
 
 ## 0. Header
 
-- Version: v1.1, 2026-10-19
+- Version: v1.2, 2026-10-19
 - Status: LOCKED 2026-10-19 by Kristian Kobescak (owner answers in the planning session).
 - Owner: Kristian Kobescak
 - Build type: portfolio
@@ -178,10 +178,12 @@ Locked after owner approval (change only by a dated line in 8.):
 6. Embeddings OpenAI `text-embedding-3-small` (owner, 2026-10-19). Rejected: Gemini.
 7. No live WhatsApp number (owner, 2026-10-19): needs a Meta business account the owner does not have, and a public URL.
 
-Open:
-- Date: needs about 2 days of n8n time after items 3 and 7. If n8n is free by Sat 2026-10-24, done about Tue 2026-10-27; later puts the 2026-10-30 gate at risk (item 4 also needs n8n). Owner says when n8n is free.
+8. No fixed date (owner, 2026-10-19): done when the quality bar holds; the 2026-10-30 portfolio gate does not set the pace. Rejected: building to the gate date.
+
+Open: none.
 
 ## 8. Version log
 
+- v1.2 2026-10-19: owner decision: no fixed date (decision 8).
 - v1.1 2026-10-19: owner decisions: Critical, safeguard line, Supabase (replaces the proposed Qdrant), OpenAI embeddings, no live WhatsApp; LOCKED.
 - v1.0 2026-10-19: first version, for owner review.
