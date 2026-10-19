@@ -31,6 +31,9 @@ Starting points, not exhaustive reading lists.
 |---|---|
 | Understand or explain the system | `README.md` |
 | Current status or open decisions | `STATE.md` |
+| Plan, scope, decisions | `BLUEPRINT.md` |
+| Test cases, expected results, behaviour rules | `tests/CASES.md`, `tests/make_cases.py`, `tests/cases/`, `tests/kb/` |
+| Grading and eval gate, recorded runs | `tests/grading.py`, `evals/eval_config.yaml`, `evals/RESULTS.md` |
 | Documentation / README / ADR work | the artifact itself; `.githooks/validate_artifacts.py` for enforced structure |
 
 ## Always-on constraints
@@ -45,8 +48,15 @@ Starting points, not exhaustive reading lists.
   exists.
 - No secrets or machine-local absolute paths in tracked files.
 - Never rewrite git history.
+- The eval gate is fixed before the build; never change a case, expected
+  result, KB article, grading rule or threshold to make a run pass (new dated version only).
+- The hold-out cases are written by a separate session. A building
+  session never opens the q123-holdout folder before the first gated run.
+- Made-up data only (company, people, orders); no real business accounts.
 - This file is an instruction surface, not a security boundary.
 
 ## Verification
 
 - Tier 0 structure: `python .githooks/validate_artifacts.py .`
+- Test cases and self-checks: `python tests/make_cases.py`
+- Grader catches what it should: `python tests/test_grading.py`
