@@ -185,7 +185,7 @@ else {
       else {
         route = out.route; reason = out.reason || 'none'; cited = Array.isArray(out.cited) ? out.cited : [];
         // article IDs belong in 'cited', never in the customer's text: remove references like (A06) or (A05, A06)
-        reply = String(out.reply || '').replace(/\s*\((?:articles? )?[AI]\d{2}(?:\s*(?:,|and)\s*[AI]\d{2})*\)/g, '').replace(/(?:article )?[AI]\d{2}/g, 'the previous policy').trim();
+        reply = String(out.reply || '').replace(/\s*\((?:articles? )?[AI]\d{2}(?:\s*(?:,|and)\s*[AI]\d{2})*\)/g, '').replace(/\b(?:article )?[AI]\d{2}\b/g, '').replace(/[ \t]{2,}/g, ' ').replace(/ ([.,;:!?])/g, '$1').trim();
         if (route !== 'handoff') {
           const ids = new Set(retrieved.map((r) => r.id));
           const citedText = srch.found.filter((a) => cited.includes(a.id)).map((a) => a.text).join('\n');
