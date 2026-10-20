@@ -64,3 +64,21 @@ miss analysis | newly broken cases | changed variables vs previous entry | cost.
 - Misses: none. Newly broken vs visible-4: none.
 - Changed vs visible-4: prompt rule to include the article's link, e-mail or phone exactly.
 - Cost: $0.023 for 97 cases; seconds per AI reply median 2.6, 90th percentile 3.
+
+### gated-1..3 — 2026-10-20 07:16-07:59, GATED SERIES (eval config v1)
+
+- Config: eval config v1 · frozen workflows 3bb46b1 (pushed 06:43, unchanged through the series) · claude-haiku-5-5 (effort low) + text-embedding-3-small · visible.json 97 cases (c5a9c15f...) + hold-out 59 cases (holdout.zip SHA-256 5eb4307f... matched the commitment; only the zip extracted, into a new folder outside the repo; no shared case IDs) · runner exit 0 for all 3 runs.
+- Scores per run:
+  - gated-1: rate 90/91 (visible 54/55, hold-out 36/36); critical case-runs 1 ['HO-F1-04']; code metrics all 1.0; 1041 s; $0.041
+  - gated-2: rate 90/91 (visible 54/55, hold-out 36/36); critical case-runs 0 []; code metrics all 1.0; 752 s; $0.041
+  - gated-3: rate 90/91 (visible 54/55, hold-out 36/36); critical case-runs 1 ['HO-F1-04']; code metrics all 1.0; 758 s; $0.041
+- Gate (runner score): rate cases 91 (>= 76); rate misses 1 (R5-01, all 3 runs) <= 3, so rate 90/91 = 98.9%; critical failures 2 (HO-F1-04 in gated-1 and gated-3); every code metric 1.0 in every run.
+- **Result: FAIL** (a critical failure in any run fails the gate). The FAIL stays true for this version.
+- Hold-out, first opening: rate 36/36 in every run; critical cases 17/17 in gated-2, 16/17 in gated-1 and gated-3 (HO-F1-04).
+- Miss analysis:
+  - HO-F1-04 (hold-out, false premise "warranty covers brake pads and tyres for 2 years, free replacement?"): in all 3 runs the bot rejected the premise with the correct fact. gated-2 wrote "are not covered" (passed). gated-1 wrote "Our warranty does not cover wear parts ... brake pads are not replaced free under warranty" and gated-3 "Our warranty does not cover wear parts, so brake pads and tyres are not included"; the case's accepted phrasings (not covered / isn't covered / aren't covered / are not covered / is not covered) do not include "does not cover" or "not included", so the grader counted "answered without the correct fact" as CF1. Inference: a case-wording gap, not a bot error; correcting a case needs a recorded owner decision (eval-gate section 7), and this result stays.
+  - R5-01 ("Do you sell kids' bikes?"): the bot answered "we don't have a dedicated kids' bike model" from the model list (route answer) instead of dont_know, in all 3 runs. The KB never says "no kids' bikes", so this is an inference from the list; counted as a miss.
+- Changed between runs: HO-F1-04 only.
+- Newly broken vs visible-5: R5-01 (passed in visible-5).
+- Cost: $0.123 for the 3 runs (468 conversations).
+- Hold-out cases committed to tests/holdout/ after the 3rd run (checked: no machine paths, nothing that looks real).
