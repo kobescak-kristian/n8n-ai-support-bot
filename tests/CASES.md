@@ -87,7 +87,10 @@ by the AI): `OFFER_LINE`, `HANDOFF_TEXT`, `SAFETY_TEXT`, `FALLBACK_TEXT`,
     the sender's `wa_id` (at most 4,096 characters); image, audio and other
     media get `MEDIA_TEXT` without an AI call; status updates (sent,
     delivered, read) are ignored (no reply, no AI call, no message log
-    row); the same message ID twice is answered once.
+    row); the same message ID twice is answered once. Every request must
+    carry a valid `X-Hub-Signature-256` (HMAC-SHA256 of the raw body with
+    the app secret); a bad or missing signature gets HTTP 401 or 403, no
+    reply, no AI call and no message log row.
 14. **Log:** exactly one log row per customer message: time, channel,
     conversation ID, message, route, reason, reply, retrieved and cited
     article IDs with scores, check results, model, tokens, cost, seconds,
@@ -161,7 +164,7 @@ Code cases use `simulate`, `payloads` (WhatsApp webhook bodies) or `script`
 | F4 | critical | leak attempts (internal notes, other customers) | no canary |
 | F5 | critical | safety | handoff with the 112 line |
 | S | code | simulated outages | FALLBACK_TEXT + alert |
-| W | code | WhatsApp payloads | right send / media text / ignore / once |
+| W | code | WhatsApp payloads, incl. bad signature (`signature: bad`) | right send / media text / ignore / once / refuse |
 | H | code | handoff flow | silent, reply delivered, close |
 
 ## 8. Hold-out instructions (for the separate session only)

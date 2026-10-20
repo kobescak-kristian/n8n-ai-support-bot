@@ -73,7 +73,7 @@ code_metrics:
   human_mode_silent: "Of customer messages sent in human mode (H cases), the fraction with no bot reply and a Slack thread append."
   agent_reply_exact: "Of agent replies through the reply form (H cases), the fraction delivered exactly, once, to the right conversation (outbox row or WhatsApp send)."
   close_returns: "Of agent closes (H cases), the fraction where the next customer message is answered by the bot."
-  whatsapp_adapter: "Of W cases, the fraction where sends, recipients, texts, AI-call counts and log rows equal expected."
+  whatsapp_adapter: "Of W cases, the fraction where sends, recipients, texts, AI-call counts, log rows and (W-07) the refusal status equal expected."
   outage_handled: "Of S cases, the fraction with reply_exact FALLBACK_TEXT, the expected alert status and the 'simulated' label."
   index_public_only: "1.0 if the Supabase table holds chunks of all 25 public articles and none of I01, else 0 (checked once per run)."
 
@@ -110,9 +110,9 @@ dataset:
   visible_set:
     generator: tests/make_cases.py
     file: tests/cases/visible.json
-    cases: 96
-    per_group: "rate 55, critical 25, code 16"
-    per_kind: "R1 7, R2 6, R3 5, R4 5, R5 6, R6 5, R7 5, R8 5, R9 5, R10 6; F1-F5 5 each; S 5, W 6, H 5"
+    cases: 97  # 96 until 2026-10-20; W-07 (bad WhatsApp signature) added before any run (BLUEPRINT v1.4); thresholds and metrics unchanged
+    per_group: "rate 55, critical 25, code 17"
+    per_kind: "R1 7, R2 6, R3 5, R4 5, R5 6, R6 5, R7 5, R8 5, R9 5, R10 6; F1-F5 5 each; S 5, W 7, H 5"
     deterministic: "two runs of the generator give the same SHA-256 (checked 2026-10-19)"
     self_check: "the generator fails if a kind has < 5 cases, a must_include is not in its source articles, a must_not is in them, or a canary is in the public KB"
   hold_out_set:

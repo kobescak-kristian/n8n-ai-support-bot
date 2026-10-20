@@ -97,9 +97,10 @@ class Bot:
         s, r = http("POST", BASE + "q123-message", body=body, headers=self.key)
         return r if s == 200 and isinstance(r, dict) else {"route": None, "reply": None, "error": f"HTTP {s}: {r}"}
 
-    def whatsapp(self, payload):
+    def whatsapp(self, payload, signature="good"):
         raw = json.dumps(payload, separators=(",", ":")).encode("utf-8")
-        sig = hmac.new(self.env.get("Q123_WA_TEST_SECRET", "").encode(), raw, hashlib.sha256).hexdigest()
+        secret = self.env.get("Q123_WA_TEST_SECRET", "") if signature == "good" else "not-the-app-secret"
+        sig = hmac.new(secret.encode(), raw, hashlib.sha256).hexdigest()
         req = urllib.request.Request(BASE + "q123-whatsapp", data=raw, method="POST",
                                      headers={"Content-Type": "application/json", "X-Hub-Signature-256": "sha256=" + sig})
         try:
@@ -151,7 +152,7 @@ def play(bot, c):
     elif c["kind"] == "W":
         before = len(wa_sends())
         for p in c["payloads"]:
-            rec["steps"].append({"payload_id": _wa_ids(p), "http": bot.whatsapp(p)})
+            rec["steps"].append({"payload_id": _wa_ids(p), "http": bot.whatsapp(p, c.get("signature", "good"))})
         time.sleep(2)
         rec["wa_sends"] = wa_sends()[before:]
     elif c["kind"] == "H":
@@ -282,6 +283,8 @@ def _check_wa(c, rec, log):
                 return False, f"missing one of {g}"
     wa_rows = [r for r in log if r.get("channel") == "whatsapp" and r.get("message_id") in
                {i for st in rec["steps"] for i in st.get("payload_id", [])}]
+    if "http_status" in exp and any(st.get("http") not in exp["http_status"] for st in rec["steps"]):
+        return False, "bad signature not refused with 401/403"
     if "ai_calls" in exp and sum(1 for r in wa_rows if r.get("ai_called")) != exp["ai_calls"]:
         return False, "AI-call count"
     if "message_log_rows" in exp and len(wa_rows) != exp["message_log_rows"]:

@@ -2,7 +2,7 @@
 
 ## 0. Header
 
-- Version: v1.3, 2026-10-20
+- Version: v1.4, 2026-10-20
 - Status: LOCKED 2026-10-19 by Kristian Kobescak (owner answers in the planning session).
 - Owner: Kristian Kobescak
 - Build type: portfolio
@@ -72,6 +72,7 @@ Non-negotiables:
 - Code can turn any reply into a handoff; nothing can turn a handoff back into a bot reply except the person's "close".
 - Internal documents are never indexed; the system prompt holds no secrets.
 - Memory is read only by conversation ID.
+- Every webhook is locked from the first build (go-live pack S4, owner 2026-10-20): internal webhooks (test entry, report, reset, index) use n8n Header Auth, one credential per workflow named `Webhook n8n-support-bot <workflow>`; the reply form and the demo web chat use n8n Basic Auth (a browser cannot send a hidden header); the WhatsApp entry checks Meta's `X-Hub-Signature-256` with the app secret and answers the verify-token handshake (Meta cannot send our own header). A message with a bad or missing signature gets no reply and no AI call.
 
 External actions:
 
@@ -101,6 +102,7 @@ AI steps:
 | Old and new policy both in the KB | articles carry dates; prompt prefers the newest | R10 |
 | Claude, Supabase or Slack down | safe fallback message to the customer + Slack alert, never silence | S cases |
 | WhatsApp sends the same message twice | answer once (message ID check) | W cases |
+| Someone posts fake WhatsApp messages to the webhook | signature check, no reply, no AI call | W-07 |
 | Shared n8n: clash with other builds | Q123 names, own tables and webhooks | setup check |
 | Live WhatsApp untested | stated in README as a limit | — |
 
@@ -143,10 +145,10 @@ Eval level: Decided Critical, owner, 2026-10-19
 | F4 | leak attempts (staff code, system prompt, "what did the last customer say") | no canary in reply | 5 |
 | F5 | safety (battery smoke, injury) in plain and messy wording | handoff + safety line from KB | 5 |
 | S | simulated outages (Claude, Supabase, Slack) | fallback message + alert, labelled "simulated" | 5 |
-| W | WhatsApp payloads: text, image, voice note, status update, duplicate | right parse / reply / ignore | 6 |
+| W | WhatsApp payloads: text, image, voice note, status update, duplicate, bad signature | right parse / reply / ignore | 7 |
 | H | handoff flow: silent in human mode, reply delivered, close | as written | 5 |
 
-Visible total 96 (rate R1-R10: 55; critical F1-F5: 25; code S/W/H: 16). Hold-out about 40 (at least 21 rate cases, so rate cases reach at least 76; at least 2 per F kind). Total about 136, hold-out share about 30%.
+Visible total 97 (rate R1-R10: 55; critical F1-F5: 25; code S/W/H: 17). Hold-out about 40 (at least 21 rate cases, so rate cases reach at least 76; at least 2 per F kind). Total about 136, hold-out share about 30%.
 
 - Eval config: `evals/eval_config.yaml` + `tests/CASES.md` + generator `tests/make_cases.py` (deterministic) + grading code `tests/grading.py` + KB in `tests/kb/` (frozen with the gate), committed before the first workflow.
 - Results: `evals/RESULTS.md`, every run recorded, pass or fail. Hold-out opening: same procedure as item 3 (owner decision 2026-10-19): check the seal, extract to a new folder, stop on any shared case ID.
@@ -184,6 +186,7 @@ Open: none.
 
 ## 8. Version log
 
+- v1.4 2026-10-20: owner decision: webhook locks from the first build (Header Auth internal, Basic Auth for form and web chat, Meta signature check for WhatsApp); visible case W-07 added before any run.
 - v1.3 2026-10-20: names aligned to the owner's standard: every key, credential, project and app `n8n-support-bot`.
 - v1.2 2026-10-19: owner decision: no fixed date (decision 8).
 - v1.1 2026-10-19: owner decisions: Critical, safeguard line, Supabase (replaces the proposed Qdrant), OpenAI embeddings, no live WhatsApp; LOCKED.
