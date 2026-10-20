@@ -20,7 +20,7 @@
    "credentials": {
     "httpBasicAuth": {
      "id": "__CRED:formLogin__",
-     "name": "Reply form n8n-support-bot"
+     "name": "Reply form n8n-ai-support-bot"
     }
    },
    "webhookId": "a574fc90-f2b7-50ec-bb61-3b230b53361e"
@@ -114,7 +114,7 @@
    "credentials": {
     "httpBasicAuth": {
      "id": "__CRED:formLogin__",
-     "name": "Reply form n8n-support-bot"
+     "name": "Reply form n8n-ai-support-bot"
     }
    },
    "webhookId": "49883ffb-ecff-5e88-835e-a476672e1e1e"
@@ -311,7 +311,7 @@
    "credentials": {
     "httpHeaderAuth": {
      "id": "__CRED:waToken__",
-     "name": "WhatsApp n8n-support-bot (test)"
+     "name": "WhatsApp n8n-ai-support-bot (test)"
     }
    },
    "onError": "continueRegularOutput"

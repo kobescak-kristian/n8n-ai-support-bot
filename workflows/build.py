@@ -27,7 +27,7 @@ BASE = "http://localhost:5678"
 MODEL = "claude-sonnet-5-5"   # until the model check (evals/eval_config.yaml runs.model) picks the gated model
 FLOOR = 0.20                  # best similarity below this: "I don't know" without calling Claude (tuned in dev runs)
 SLACK_CHANNEL = "#support-handoff"
-SHORT = "n8n-support-bot"
+SHORT = "n8n-ai-support-bot"
 OWNER_CREDS = {"anthropicApi": f"Anthropic {SHORT}", "openAiApi": f"OpenAI {SHORT}",
                "supabaseApi": f"Supabase {SHORT}", "slackApi": f"Slack {SHORT}"}
 # test-only credentials created by --push from .env (type, n8n name, data builder)

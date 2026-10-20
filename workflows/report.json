@@ -20,7 +20,7 @@
    "credentials": {
     "httpHeaderAuth": {
      "id": "__CRED:webhookKey__",
-     "name": "Webhook n8n-support-bot"
+     "name": "Webhook n8n-ai-support-bot"
     }
    },
    "webhookId": "6586a8d9-e6fa-5361-91da-de31dd60d2b7"
@@ -110,7 +110,7 @@
    "credentials": {
     "supabaseApi": {
      "id": "__CRED:supabaseApi__",
-     "name": "Supabase n8n-support-bot"
+     "name": "Supabase n8n-ai-support-bot"
     }
    },
    "onError": "continueRegularOutput"

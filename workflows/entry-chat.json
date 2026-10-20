@@ -23,7 +23,7 @@
    "credentials": {
     "httpBasicAuth": {
      "id": "__CRED:formLogin__",
-     "name": "Reply form n8n-support-bot"
+     "name": "Reply form n8n-ai-support-bot"
     }
    },
    "webhookId": "6441f610-ab21-5b9b-9633-3ef4711322ac"

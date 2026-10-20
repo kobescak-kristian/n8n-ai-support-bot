@@ -20,7 +20,7 @@
    "credentials": {
     "httpHeaderAuth": {
      "id": "__CRED:webhookKey__",
-     "name": "Webhook n8n-support-bot"
+     "name": "Webhook n8n-ai-support-bot"
     }
    },
    "webhookId": "89b2b71b-8048-56e7-a19b-6994f6e3f891"

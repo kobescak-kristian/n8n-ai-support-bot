@@ -87,7 +87,7 @@
    "credentials": {
     "crypto": {
      "id": "__CRED:waSecret__",
-     "name": "WhatsApp app secret n8n-support-bot (test)"
+     "name": "WhatsApp app secret n8n-ai-support-bot (test)"
     }
    }
   },
@@ -400,7 +400,7 @@
    "credentials": {
     "httpHeaderAuth": {
      "id": "__CRED:waToken__",
-     "name": "WhatsApp n8n-support-bot (test)"
+     "name": "WhatsApp n8n-ai-support-bot (test)"
     }
    },
    "onError": "continueRegularOutput"

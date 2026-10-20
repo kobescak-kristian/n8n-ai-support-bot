@@ -200,7 +200,7 @@
    "credentials": {
     "openAiApi": {
      "id": "__CRED:openAiApi__",
-     "name": "OpenAI n8n-support-bot"
+     "name": "OpenAI n8n-ai-support-bot"
     }
    },
    "onError": "continueRegularOutput"
@@ -249,7 +249,7 @@
    "credentials": {
     "supabaseApi": {
      "id": "__CRED:supabaseApi__",
-     "name": "Supabase n8n-support-bot"
+     "name": "Supabase n8n-ai-support-bot"
     }
    },
    "onError": "continueRegularOutput"
@@ -346,7 +346,7 @@
    "credentials": {
     "anthropicApi": {
      "id": "__CRED:anthropicApi__",
-     "name": "Anthropic n8n-support-bot"
+     "name": "Anthropic n8n-ai-support-bot"
     }
    },
    "onError": "continueRegularOutput",
@@ -446,7 +446,7 @@
    "credentials": {
     "slackApi": {
      "id": "__CRED:slackApi__",
-     "name": "Slack n8n-support-bot"
+     "name": "Slack n8n-ai-support-bot"
     }
    },
    "onError": "continueRegularOutput",
