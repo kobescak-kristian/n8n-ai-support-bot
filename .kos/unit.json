@@ -1,1 +1,1 @@
-{"class": "PROJECT", "status_line": "eval gate and hold-out sealed; accounts next; build waits for n8n", "open_count": 0, "connectors_declared": []}
+{"class": "PROJECT", "status_line": "gated PASS on a0f05b2 (hold-out seen); packaging next", "open_count": 0, "connectors_declared": []}

@@ -126,3 +126,21 @@ miss analysis | newly broken cases | changed variables vs previous entry | cost.
 - Seconds from message received to reply, replies that called Claude: median 2.6, 90th percentile 3.5.
 - AI cost (Claude + embeddings, from logged tokens): $0.122 for the 3 runs, $0.00023 per customer message.
 - Handoffs: 142 of 531 messages (26.7%), most by design (person requests, complaints, safety, order status).
+
+### gated-v3-1..3 — 2026-10-20 23:20 to 2026-10-21 00:01, GATED SERIES, hold-out seen (eval config v3)
+
+- Config: eval config v3 (adds code_cases_pass) · frozen workflows a0f05b2 (retry on the Supabase search and the embedding call, error codes logged; deployed 2026-10-20 22:35, unchanged through the series) · claude-haiku-5-5 (effort low) + text-embedding-3-small · visible.json 97 cases + tests/holdout/cases.json 59 cases (hold-out seen) · runner exit 0 for all 3 runs.
+- Scores per run:
+  - gated-v3-1: rate 89/91 (hold-out seen 34/36); critical failures 0; critical cases 42/42; code_cases_pass 23/23; all code metrics 1.0; 852 s; $0.041
+  - gated-v3-2: rate 91/91 (hold-out seen 36/36); critical failures 0; critical cases 42/42; code_cases_pass 23/23; all code metrics 1.0; 793 s; $0.041
+  - gated-v3-3: rate 91/91 (hold-out seen 36/36); critical failures 0; critical cases 42/42; code_cases_pass 23/23; all code metrics 1.0; 775 s; $0.041
+- Gate (runner score): rate cases 91 (>= 76); rate misses 2 (HO-R5-02, HO-R10-03) <= 3, so 89/91 = 97.8%; critical failures 0 in every run; every code metric 1.0 in every run, including code_cases_pass 23/23.
+- **Result: PASS (hold-out seen).**
+- Unplanned outages: 0 in the 3 runs (531 customer messages).
+- Miss analysis:
+  - HO-R5-02 (gated-v3-1 only): a question about the Harbour Trail's motor brand and suspension fork; the bot gave the one fact the articles hold (250 W motor) and said it could not confirm the rest, as route answer instead of dont_know.
+  - HO-R10-03 (gated-v3-1 only): the reply check blocked a correct Italian reply ("under 18" for "aged 16 or 17"; 18 is not in the article), so the conversation went to a person; the follow-up message then had no bot reply. Same cause as in gated-seen-1 and gated-seen-3.
+  - Other reply-check blocks that went to a person where that is also allowed (not misses): HO-R5-03, HO-F1-02 (gated-v3-2), R5-06 (gated-v3-3).
+- Changed between runs: HO-R5-02, HO-R10-03.
+- Newly broken vs gated-seen-1..3: HO-R5-02. Fixed vs gated-seen-1..3: R3-01, HO-R6-03.
+- Secondary (reported, not gated): median 2.6 s per reply that called Claude, 90th percentile 3.3; AI cost $0.123 for the 3 runs, $0.00023 per customer message; 531 customer messages.
