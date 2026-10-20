@@ -46,3 +46,12 @@ miss analysis | newly broken cases | changed variables vs previous entry | cost.
 - claude-opus-5-5: rate 10/10 minus 1 miss(es) ['R10-04'], critical failures 0, cost $0.1941 ($0.01294 per case), median 4.2 s per AI reply.
 - Opus miss: R10-04 reply mentioned the archived €50 pickup fee (must_not).
 - Rule result: claude-haiku-5-5 (cheapest with 0 critical failures and at most 1 rate miss) is the model for the gated runs.
+
+### visible-4 — 2026-10-20 06:31, development run (not gated)
+
+- Config: eval config v1 · workflows 2f28c39 · claude-haiku-5-5 (effort low, chosen by the model check) + text-embedding-3-small · visible.json 97 cases (c5a9c15f...) · runner exit 0, 619 s.
+- Scores: rate 54/55; critical failures 0; critical cases 25/25; code cases 17/17; code metrics all 1.0.
+- Result: development run, no verdict.
+- Misses: R1-06: reply said "track your order on our website" without the tracking link from A04 (must_include). Newly broken vs visible-3: R1-06 (model change). R5-06 went to handoff (check_failed: a draft named the 250 W motor, not in the cited text); handoff is also OK for R5, so not a miss.
+- Changed vs visible-3: model claude-sonnet-5-5 -> claude-haiku-5-5.
+- Cost: $0.023 for 97 cases; seconds per AI reply median 2.9, 90th percentile 4.
