@@ -25,7 +25,7 @@ import grading  # noqa: E402
 
 BASE = "http://localhost:5678"
 MODEL = "claude-sonnet-5-5"   # until the model check (evals/eval_config.yaml runs.model) picks the gated model
-FLOOR = 0.20                  # best similarity below this: "I don't know" without calling Claude (tuned in dev runs)
+FLOOR = 0.20                  # logged only (visible-1: a floor shortcut skipped Claude and missed a complaint, R9-03)
 SLACK_CHANNEL = "#support-handoff"
 SHORT = "n8n-ai-support-bot"
 OWNER_CREDS = {"anthropicApi": f"Anthropic {SHORT}", "openAiApi": f"OpenAI {SHORT}",
@@ -190,7 +190,7 @@ def build_core():
     code(w, "Prepare search", J.PREP_SEARCH, 8, -1)
     http(w, "Search articles", 9, -1, cred=SUPABASE)
     code(w, "Prepare Claude", J.PREP_CLAUDE, 10, -1)
-    if_true(w, "Call Claude?", "={{ $json.ok && !$json.below_floor }}", 11, -1)
+    if_true(w, "Call Claude?", "={{ $json.ok }}", 11, -1)
     http(w, "Call Claude", 12, -2, cred=ANTHROPIC, throw=True, retryOnFail=True, maxTries=2, waitBetweenTries=3000,
          headers={"anthropic-version": "2023-06-01", "anthropic-beta": "server-side-fallback-2026-07-01"})
     code(w, "Finalize", J.FINALIZE, 13)

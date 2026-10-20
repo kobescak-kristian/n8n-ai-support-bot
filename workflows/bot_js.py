@@ -115,7 +115,7 @@ const s = $('Pre-check').first().json.state;
 const r = $('Embed question').first().json;
 const emb = r && r.statusCode === 200 && r.body && r.body.data ? r.body.data[0].embedding : null;
 return [{ json: { ok: !!emb, url: s.simulate === 'supabase_down' ? DEAD : '__SUPABASE_URL__/rest/v1/rpc/q123_match_chunks',
-                  body: { query_embedding: emb || [], match_count: 5, filter: {} }, timeout_ms: 20000,
+                  body: { query_embedding: emb || [], match_count: 8, filter: {} }, timeout_ms: 20000,
                   embed_tokens: r && r.body && r.body.usage ? r.body.usage.total_tokens : 0 } }];
 """
 
@@ -171,8 +171,8 @@ else if (s.next === 'handoff') { route = 'handoff'; reason = s.pre_reason; }
 else {
   if (!emb || emb.statusCode !== 200) outage = 'embeddings';
   else if (!srch || !srch.search_ok) outage = 'supabase';
-  else if (srch.below_floor) { route = 'dont_know'; reply = "I couldn't find this in our help articles."; checks.floor = srch.best; }
   else {
+    checks.best_score = srch.best;
     aiCalled = true;
     if (!cl || cl.statusCode !== 200 || !cl.body) outage = 'claude';
     else {
