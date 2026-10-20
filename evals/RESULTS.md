@@ -112,3 +112,10 @@ miss analysis | newly broken cases | changed variables vs previous entry | cost.
 - Newly broken vs gated-1..3: R3-01, HO-R6-03, HO-R10-03 (each passed in gated-1..3).
 - Cost: $0.122 for the 3 runs.
 - Next version (owner decision): one retry on the Supabase search and the embedding call, error codes in the log; gate v3 adds a code metric "every code case passes"; failure-register entries for the scoring gap and the missing retry.
+
+### check-7 — 2026-10-20 22:35, development check of the next version (not gated)
+
+- Config: eval config v3 · workflows a0f05b2 (one retry on Supabase search and embeddings, error codes logged) · claude-haiku-5-5 · 8 visible cases (S-01..S-04, R1-01, R7-01, W-01, H-01) · runner exit 0.
+- Scores: rate 2/2; code cases 6/6 (code_cases_pass 6/6); outage_handled 4/4; critical failures 0; all code metrics 1.0.
+- The 4 simulated outages now log their error ("The service refused the connection") and take 2.4-5.7 s with the retry.
+- Result: development check, no verdict. Claims about this version need its own gated series.
