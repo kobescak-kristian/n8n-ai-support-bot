@@ -14,6 +14,8 @@ const DEAD = 'http://127.0.0.1:9/';
 const nowIso = () => new Date().toISOString();
 const parseJ = (s, d) => { try { return typeof s === 'string' ? JSON.parse(s) : (s ?? d); } catch (e) { return d; } };
 const ran = (n) => { try { return $(n).first().json; } catch (e) { return null; } };
+// short error description of an HTTP node's output, for the log (status code or error message)
+const errInfo = (r) => !r ? 'not run' : r.statusCode ? `HTTP ${r.statusCode}` : r.error ? String(r.error.httpCode || r.error.message || r.error.description || JSON.stringify(r.error)).slice(0, 160) : 'no response';
 const rows = (n) => { try { return $(n).all().map((i) => i.json).filter((j) => j && j.id !== undefined); } catch (e) { return []; } };
 
 function normalize(text) {
@@ -200,7 +202,8 @@ else {
     }
   }
 }
-if (outage) { route = 'error'; reason = 'outage_' + outage; reply = FIXED.FALLBACK_TEXT; }
+if (outage) { route = 'error'; reason = 'outage_' + outage; reply = FIXED.FALLBACK_TEXT;
+  checks.error = { embeddings: errInfo(emb), supabase: errInfo(ran('Search articles')), claude: errInfo(cl) }[outage]; }
 if (route === 'dont_know') reply = (reply ? reply.trim() + ' ' : '') + FIXED.OFFER_LINE;
 if (route === 'handoff') reply = (reason === 'safety' ? FIXED.SAFETY_TEXT + ' ' : '') + FIXED.HANDOFF_TEXT;
 // Slack: handoff message, thread append in human mode, or an alert on an outage
@@ -232,6 +235,7 @@ const f = { ...$('Finalize').first().json };
 const sl = ran('Post to Slack');
 const sent = !!(f.slack && sl && sl.statusCode === 200 && sl.body && sl.body.ok);
 f.slack_ok = sent; f.slack_ts = sent ? sl.body.ts : ''; f.slack_text = f.slack ? f.slack.text : '';
+if (f.slack && !sent) f.checks = { ...f.checks, slack_error: sl && sl.body && sl.body.error ? String(sl.body.error) : errInfo(sl) };
 f.alert_status = f.outage ? (sent ? 'sent' : 'failed') : '';
 f.mode_after = '';
 if (f.route === 'handoff') {

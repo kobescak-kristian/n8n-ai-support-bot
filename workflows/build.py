@@ -187,9 +187,9 @@ def build_core():
     code(w, "Pre-check", J.PRECHECK, 4, executeOnce=True)
     if_true(w, "Needs AI?", "={{ $json.state.next === 'retrieve' }}", 5)
     code(w, "Prepare embedding", J.PREP_EMBED, 6, -1)
-    http(w, "Embed question", 7, -1, cred=OPENAI)
+    http(w, "Embed question", 7, -1, cred=OPENAI, throw=True, retryOnFail=True, maxTries=2, waitBetweenTries=2000)
     code(w, "Prepare search", J.PREP_SEARCH, 8, -1)
-    http(w, "Search articles", 9, -1, cred=SUPABASE)
+    http(w, "Search articles", 9, -1, cred=SUPABASE, throw=True, retryOnFail=True, maxTries=2, waitBetweenTries=2000)
     code(w, "Prepare Claude", J.PREP_CLAUDE, 10, -1)
     if_true(w, "Call Claude?", "={{ $json.ok }}", 11, -1)
     http(w, "Call Claude", 12, -2, cred=ANTHROPIC, throw=True, retryOnFail=True, maxTries=2, waitBetweenTries=3000,

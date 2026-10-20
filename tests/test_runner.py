@@ -93,6 +93,7 @@ th = {"rate_cases_min": 76, "rate_misses_max": 3}
 check("76 rate, 3 misses -> PASS", runner.score([summ(76, {"r1", "r2"}), summ(76, {"r3"}), summ(76, set())], th)["verdict"] == "PASS")
 check("4 misses across runs -> FAIL", runner.score([summ(76, {"r1", "r2"}), summ(76, {"r3", "r4"}), summ(76, set())], th)["verdict"] == "FAIL")
 check("75 rate cases -> NOT ENOUGH CASES", runner.score([summ(75, set())] * 3, th)["verdict"] == "NOT ENOUGH CASES")
+check("code_cases_pass is a gated metric", "code_cases_pass" in runner.CODE_METRICS)
 check("one critical -> FAIL", runner.score([summ(76, set()), summ(76, set(), crit=1), summ(76, set())], th)["verdict"] == "FAIL")
 check("only 2 runs -> not PASS", runner.score([summ(76, set())] * 2, th)["verdict"] == "FAIL")
 

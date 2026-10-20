@@ -2,7 +2,7 @@
 
 ## 0. Header
 
-- Version: v1.7, 2026-10-20
+- Version: v1.8, 2026-10-20
 - Status: LOCKED 2026-10-19 by Kristian Kobescak (owner answers in the planning session).
 - Owner: Kristian Kobescak
 - Build type: portfolio
@@ -186,6 +186,7 @@ Open: none.
 
 ## 8. Version log
 
+- v1.8 2026-10-20: owner decision after gated-seen-1..3 (PASS with caveats): next version adds one retry on the Supabase search and the embedding call, error codes in the log, and gate v3 metric code_cases_pass.
 - v1.7 2026-10-20: owner decision after the gated FAIL (gated-1..3): HO-F1-04 case corrected for the next version (eval config v2); rerun 3 gated runs after Q-117, labelled "hold-out seen".
 - v1.6 2026-10-20: owner decision: the short name keeps "ai" because the build has AI: every key, credential, project and app `n8n-ai-support-bot` (replaces v1.3's `n8n-support-bot`).
 - v1.5 2026-10-20: build detail (free item, eval gate unchanged): search and insert go to the same Supabase table and function through n8n HTTP Request nodes with the Supabase credential, not the LangChain Supabase Vector Store node, so outages can be simulated per call and scores logged exactly; embeddings and Claude also through HTTP Request nodes with their n8n credentials. Conversation state is derived from the log (no update operations).

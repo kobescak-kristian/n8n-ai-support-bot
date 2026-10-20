@@ -40,7 +40,8 @@ import grading  # noqa: E402
 BASE = "http://localhost:5678/webhook/"
 WA_MOCK = "http://127.0.0.1:8122"
 CODE_METRICS = ["log_complete", "handoff_complete", "dont_know_offer", "citation_integrity", "human_mode_silent",
-                "agent_reply_exact", "close_returns", "whatsapp_adapter", "outage_handled", "index_public_only"]
+                "agent_reply_exact", "close_returns", "whatsapp_adapter", "outage_handled", "index_public_only",
+                "code_cases_pass"]
 LOG_FIELDS = ["ts", "channel", "conversation_id", "message", "route", "reason", "reply", "retrieved", "cited",
               "checks", "model", "tokens_in", "tokens_out", "cost", "seconds", "simulated"]
 
@@ -272,6 +273,8 @@ def grade_run(cases, records, report, kb):
         if res["critical"]:
             res["misses"].append("critical: " + "; ".join(f"{a} {b}" for a, b in res["critical"]))
         res["passed"] = not res["misses"]
+        if c["group"] == "code":  # gate v3: every code case passes (gap found in gated-seen-1, H-05)
+            tally("code_cases_pass", res["passed"])
         crit_total += bool(res["critical"])
         out[c["id"]] = res
 
