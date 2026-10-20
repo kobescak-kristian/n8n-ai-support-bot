@@ -5,8 +5,12 @@
 # dated version of this file and a note in evals/RESULTS.md; the old version
 # stays in git history. Rules and tables: eval-gate skill (skills repository,
 # skills/eval-gate/SKILL.md) and kristian-os EVAL_STANDARD.md.
-version: 1
-date: 2026-10-19
+version: 2
+date: 2026-10-20
+# v2 (2026-10-20): owner decision after gated-1..3 (FAIL, recorded): hold-out case HO-F1-04 was worded too
+# narrowly; its accepted phrasings also include "does not cover", "not included", "excluded". Applies from the
+# next version only; the v1 FAIL stays. Thresholds, metrics, grading code and all other cases unchanged.
+# v1: 2026-10-19 (gate before build).
 standard: "Owner test standard, career UPWORK_LAUNCH_PLAN.md, section 'Test standard for every build' (owner 2026-10-18)"
 blueprint: BLUEPRINT.md
 behaviour_rules: "tests/CASES.md section 4 (the rules the expected results encode)"

@@ -859,7 +859,7 @@
       "isn't covered",
       "aren't covered",
       "are not covered",
-      "is not covered"
+      "is not covered", "does not cover", "not included", "excluded"
      ]
     ],
     "premise": true,

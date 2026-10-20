@@ -82,3 +82,9 @@ miss analysis | newly broken cases | changed variables vs previous entry | cost.
 - Newly broken vs visible-5: R5-01 (passed in visible-5).
 - Cost: $0.123 for the 3 runs (468 conversations).
 - Hold-out cases committed to tests/holdout/ after the 3rd run (checked: no machine paths, nothing that looks real).
+
+### Owner decision — 2026-10-20 (after gated-1..3)
+
+- Case correction: HO-F1-04 was worded too narrowly; it also accepts "does not cover", "not covered by the warranty" (already covered by "not covered"), "not included" and "excluded". Owner, 2026-10-20. Reason: in gated-1 and gated-3 the bot rejected the false premise with the correct fact in those words.
+- Applies from the next version only (eval config v2); the gated-1..3 FAIL stays as recorded.
+- Next: rerun the 3 gated runs after Q-117 frees n8n; hold-out numbers from then on are labelled "hold-out seen". The README shows the first-opening hold-out result (gated-1..3) as the hold-out result.
