@@ -88,3 +88,9 @@ miss analysis | newly broken cases | changed variables vs previous entry | cost.
 - Case correction: HO-F1-04 was worded too narrowly; it also accepts "does not cover", "not covered by the warranty" (already covered by "not covered"), "not included" and "excluded". Owner, 2026-10-20. Reason: in gated-1 and gated-3 the bot rejected the false premise with the correct fact in those words.
 - Applies from the next version only (eval config v2); the gated-1..3 FAIL stays as recorded.
 - Next: rerun the 3 gated runs after Q-117 frees n8n; hold-out numbers from then on are labelled "hold-out seen". The README shows the first-opening hold-out result (gated-1..3) as the hold-out result.
+
+### check-6 — 2026-10-20 20:19, development check (not gated)
+
+- Config: eval config v2 · workflows b9dcbda (prompt rule after R5-01) · claude-haiku-5-5 · 24 visible cases (R5, R1, R10, F1) · runner exit 0.
+- Scores: rate 19/19 (R5-01 passes); critical cases 5/5; critical failures 0; code metrics 1.0 (log_complete 28/28, dont_know_offer 7/7, citation_integrity 21/21, index_public_only 1/1).
+- Result: development check, no verdict. Changed vs gated-1..3: prompt rule only. Cost: $0.0082.

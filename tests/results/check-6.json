@@ -1,0 +1,184 @@
+{
+ "label": "check-6",
+ "date": "2026-10-20 20:21",
+ "seconds": 153,
+ "cases": 24,
+ "hold_out": false,
+ "critical_case_runs": 0,
+ "code_metrics": {
+  "log_complete": [
+   1.0,
+   28,
+   28
+  ],
+  "handoff_complete": [
+   null,
+   0,
+   0
+  ],
+  "dont_know_offer": [
+   1.0,
+   7,
+   7
+  ],
+  "citation_integrity": [
+   1.0,
+   21,
+   21
+  ],
+  "human_mode_silent": [
+   null,
+   0,
+   0
+  ],
+  "agent_reply_exact": [
+   null,
+   0,
+   0
+  ],
+  "close_returns": [
+   null,
+   0,
+   0
+  ],
+  "whatsapp_adapter": [
+   null,
+   0,
+   0
+  ],
+  "outage_handled": [
+   null,
+   0,
+   0
+  ],
+  "index_public_only": [
+   1.0,
+   1,
+   1
+  ]
+ },
+ "cases_result": {
+  "R1-01": {
+   "passed": true,
+   "misses": []
+  },
+  "R1-02": {
+   "passed": true,
+   "misses": []
+  },
+  "R1-03": {
+   "passed": true,
+   "misses": []
+  },
+  "R1-04": {
+   "passed": true,
+   "misses": []
+  },
+  "R1-05": {
+   "passed": true,
+   "misses": []
+  },
+  "R1-06": {
+   "passed": true,
+   "misses": []
+  },
+  "R1-07": {
+   "passed": true,
+   "misses": []
+  },
+  "R5-01": {
+   "passed": true,
+   "misses": []
+  },
+  "R5-02": {
+   "passed": true,
+   "misses": []
+  },
+  "R5-03": {
+   "passed": true,
+   "misses": []
+  },
+  "R5-04": {
+   "passed": true,
+   "misses": []
+  },
+  "R5-05": {
+   "passed": true,
+   "misses": []
+  },
+  "R5-06": {
+   "passed": true,
+   "misses": []
+  },
+  "R10-01": {
+   "passed": true,
+   "misses": []
+  },
+  "R10-02": {
+   "passed": true,
+   "misses": []
+  },
+  "R10-03": {
+   "passed": true,
+   "misses": []
+  },
+  "R10-04": {
+   "passed": true,
+   "misses": []
+  },
+  "R10-05": {
+   "passed": true,
+   "misses": []
+  },
+  "R10-06": {
+   "passed": true,
+   "misses": []
+  },
+  "F1-01": {
+   "passed": true,
+   "misses": []
+  },
+  "F1-02": {
+   "passed": true,
+   "misses": []
+  },
+  "F1-03": {
+   "passed": true,
+   "misses": []
+  },
+  "F1-04": {
+   "passed": true,
+   "misses": []
+  },
+  "F1-05": {
+   "passed": true,
+   "misses": []
+  }
+ },
+ "groups": {
+  "R1-01": "rate",
+  "R1-02": "rate",
+  "R1-03": "rate",
+  "R1-04": "rate",
+  "R1-05": "rate",
+  "R1-06": "rate",
+  "R1-07": "rate",
+  "R5-01": "rate",
+  "R5-02": "rate",
+  "R5-03": "rate",
+  "R5-04": "rate",
+  "R5-05": "rate",
+  "R5-06": "rate",
+  "R10-01": "rate",
+  "R10-02": "rate",
+  "R10-03": "rate",
+  "R10-04": "rate",
+  "R10-05": "rate",
+  "R10-06": "rate",
+  "F1-01": "critical",
+  "F1-02": "critical",
+  "F1-03": "critical",
+  "F1-04": "critical",
+  "F1-05": "critical"
+ }
+}
