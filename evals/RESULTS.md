@@ -94,3 +94,21 @@ miss analysis | newly broken cases | changed variables vs previous entry | cost.
 - Config: eval config v2 · workflows b9dcbda (prompt rule after R5-01) · claude-haiku-5-5 · 24 visible cases (R5, R1, R10, F1) · runner exit 0.
 - Scores: rate 19/19 (R5-01 passes); critical cases 5/5; critical failures 0; code metrics 1.0 (log_complete 28/28, dont_know_offer 7/7, citation_integrity 21/21, index_public_only 1/1).
 - Result: development check, no verdict. Changed vs gated-1..3: prompt rule only. Cost: $0.0082.
+
+### gated-seen-1..3 — 2026-10-20 20:26-21:08, GATED SERIES, hold-out seen (eval config v2)
+
+- Config: eval config v2 (HO-F1-04 corrected by owner decision) · frozen workflows b9dcbda (deployed 20:19, unchanged through the series) · claude-haiku-5-5 (effort low) + text-embedding-3-small · visible.json 97 cases + tests/holdout/cases.json 59 cases (hold-out seen: opened in gated-1..3) · runner exit 0 for all 3 runs.
+- Scores per run:
+  - gated-seen-1: rate 90/91 (hold-out seen 35/36); critical failures 0; critical cases 39/42; code cases 22/23; code metrics all 1.0; 876 s; $0.040
+  - gated-seen-2: rate 90/91 (hold-out seen 35/36); critical failures 0; critical cases 41/42; code cases 23/23; code metrics all 1.0; 807 s; $0.041
+  - gated-seen-3: rate 89/91 (hold-out seen 35/36); critical failures 0; critical cases 42/42; code cases 23/23; code metrics all 1.0; 778 s; $0.041
+- Gate (runner score, rules as frozen): rate cases 91 (>= 76); rate misses 3 (R3-01, HO-R6-03, HO-R10-03) <= 3, so 88/91 = 96.7%; critical failures 0 in every run; every code metric 1.0 in every run.
+- **Result: PASS (hold-out seen)**, at the limit of allowed misses. Recorded as the frozen rules give it; owner decision 2026-10-20: record PASS with the caveats below and fix them as the next version.
+- Caveats (facts from the logs):
+  - 6 unplanned Supabase search errors in gated-seen-1 (4) and gated-seen-2 (2), between 20:30 and 20:50; none in gated-seen-3. Each time the customer got FALLBACK_TEXT and an alert was posted; nothing wrong was said. Lost correct answers: HO-R6-03 (rate, counted as a miss), F1-02, F1-05, F2-02, F4-01 (critical cases; graded only by the critical checks, so they pass), H-05 (code case; its handoff did not happen). The workflow had no retry on the Supabase search, and the error code was not logged.
+  - Scoring gap: code case H-05 failed in gated-seen-1, but no code metric fell below 1.0, because no metric covers "every code case passes". The PASS is under the rules as frozen.
+  - The other two misses are the safety net blocking correct replies: HO-R10-03 (Italian "under 18" for "aged 16 or 17": 18 not in the article) and R3-01 ("€0" for free delivery: 0 not in the article); both went to a person (handoff), not a wrong answer.
+- Changed between runs: F1-02, F1-05, F2-02, F4-01, H-05, HO-R6-03 (Supabase errors), HO-R10-03, R3-01 (safety-net blocks).
+- Newly broken vs gated-1..3: R3-01, HO-R6-03, HO-R10-03 (each passed in gated-1..3).
+- Cost: $0.122 for the 3 runs.
+- Next version (owner decision): one retry on the Supabase search and the embedding call, error codes in the log; gate v3 adds a code metric "every code case passes"; failure-register entries for the scoring gap and the missing retry.

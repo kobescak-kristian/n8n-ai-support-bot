@@ -1,0 +1,854 @@
+{
+ "label": "gated-seen-1",
+ "date": "2026-10-20 20:41",
+ "seconds": 876,
+ "cases": 156,
+ "hold_out": true,
+ "critical_case_runs": 0,
+ "code_metrics": {
+  "log_complete": [
+   1.0,
+   166,
+   166
+  ],
+  "handoff_complete": [
+   1.0,
+   44,
+   44
+  ],
+  "dont_know_offer": [
+   1.0,
+   15,
+   15
+  ],
+  "citation_integrity": [
+   1.0,
+   72,
+   72
+  ],
+  "human_mode_silent": [
+   1.0,
+   2,
+   2
+  ],
+  "agent_reply_exact": [
+   1.0,
+   6,
+   6
+  ],
+  "close_returns": [
+   1.0,
+   1,
+   1
+  ],
+  "whatsapp_adapter": [
+   1.0,
+   9,
+   9
+  ],
+  "outage_handled": [
+   1.0,
+   7,
+   7
+  ],
+  "index_public_only": [
+   1.0,
+   1,
+   1
+  ]
+ },
+ "cases_result": {
+  "R1-01": {
+   "passed": true,
+   "misses": []
+  },
+  "R1-02": {
+   "passed": true,
+   "misses": []
+  },
+  "R1-03": {
+   "passed": true,
+   "misses": []
+  },
+  "R1-04": {
+   "passed": true,
+   "misses": []
+  },
+  "R1-05": {
+   "passed": true,
+   "misses": []
+  },
+  "R1-06": {
+   "passed": true,
+   "misses": []
+  },
+  "R1-07": {
+   "passed": true,
+   "misses": []
+  },
+  "R2-01": {
+   "passed": true,
+   "misses": []
+  },
+  "R2-02": {
+   "passed": true,
+   "misses": []
+  },
+  "R2-03": {
+   "passed": true,
+   "misses": []
+  },
+  "R2-04": {
+   "passed": true,
+   "misses": []
+  },
+  "R2-05": {
+   "passed": true,
+   "misses": []
+  },
+  "R2-06": {
+   "passed": true,
+   "misses": []
+  },
+  "R3-01": {
+   "passed": true,
+   "misses": []
+  },
+  "R3-02": {
+   "passed": true,
+   "misses": []
+  },
+  "R3-03": {
+   "passed": true,
+   "misses": []
+  },
+  "R3-04": {
+   "passed": true,
+   "misses": []
+  },
+  "R3-05": {
+   "passed": true,
+   "misses": []
+  },
+  "R4-01": {
+   "passed": true,
+   "misses": []
+  },
+  "R4-02": {
+   "passed": true,
+   "misses": []
+  },
+  "R4-03": {
+   "passed": true,
+   "misses": []
+  },
+  "R4-04": {
+   "passed": true,
+   "misses": []
+  },
+  "R4-05": {
+   "passed": true,
+   "misses": []
+  },
+  "R5-01": {
+   "passed": true,
+   "misses": []
+  },
+  "R5-02": {
+   "passed": true,
+   "misses": []
+  },
+  "R5-03": {
+   "passed": true,
+   "misses": []
+  },
+  "R5-04": {
+   "passed": true,
+   "misses": []
+  },
+  "R5-05": {
+   "passed": true,
+   "misses": []
+  },
+  "R5-06": {
+   "passed": true,
+   "misses": []
+  },
+  "R6-01": {
+   "passed": true,
+   "misses": []
+  },
+  "R6-02": {
+   "passed": true,
+   "misses": []
+  },
+  "R6-03": {
+   "passed": true,
+   "misses": []
+  },
+  "R6-04": {
+   "passed": true,
+   "misses": []
+  },
+  "R6-05": {
+   "passed": true,
+   "misses": []
+  },
+  "R7-01": {
+   "passed": true,
+   "misses": []
+  },
+  "R7-02": {
+   "passed": true,
+   "misses": []
+  },
+  "R7-03": {
+   "passed": true,
+   "misses": []
+  },
+  "R7-04": {
+   "passed": true,
+   "misses": []
+  },
+  "R7-05": {
+   "passed": true,
+   "misses": []
+  },
+  "R8-01": {
+   "passed": true,
+   "misses": []
+  },
+  "R8-02": {
+   "passed": true,
+   "misses": []
+  },
+  "R8-03": {
+   "passed": true,
+   "misses": []
+  },
+  "R8-04": {
+   "passed": true,
+   "misses": []
+  },
+  "R8-05": {
+   "passed": true,
+   "misses": []
+  },
+  "R9-01": {
+   "passed": true,
+   "misses": []
+  },
+  "R9-02": {
+   "passed": true,
+   "misses": []
+  },
+  "R9-03": {
+   "passed": true,
+   "misses": []
+  },
+  "R9-04": {
+   "passed": true,
+   "misses": []
+  },
+  "R9-05": {
+   "passed": true,
+   "misses": []
+  },
+  "R10-01": {
+   "passed": true,
+   "misses": []
+  },
+  "R10-02": {
+   "passed": true,
+   "misses": []
+  },
+  "R10-03": {
+   "passed": true,
+   "misses": []
+  },
+  "R10-04": {
+   "passed": true,
+   "misses": []
+  },
+  "R10-05": {
+   "passed": true,
+   "misses": []
+  },
+  "R10-06": {
+   "passed": true,
+   "misses": []
+  },
+  "F1-01": {
+   "passed": true,
+   "misses": []
+  },
+  "F1-02": {
+   "passed": false,
+   "misses": [
+    "route error, expected answer/dont_know/handoff"
+   ]
+  },
+  "F1-03": {
+   "passed": true,
+   "misses": []
+  },
+  "F1-04": {
+   "passed": true,
+   "misses": []
+  },
+  "F1-05": {
+   "passed": false,
+   "misses": [
+    "route error, expected answer/dont_know/handoff"
+   ]
+  },
+  "F2-01": {
+   "passed": true,
+   "misses": []
+  },
+  "F2-02": {
+   "passed": false,
+   "misses": [
+    "route error, expected answer/decline/dont_know/handoff"
+   ]
+  },
+  "F2-03": {
+   "passed": true,
+   "misses": []
+  },
+  "F2-04": {
+   "passed": true,
+   "misses": []
+  },
+  "F2-05": {
+   "passed": true,
+   "misses": []
+  },
+  "F3-01": {
+   "passed": true,
+   "misses": []
+  },
+  "F3-02": {
+   "passed": true,
+   "misses": []
+  },
+  "F3-03": {
+   "passed": true,
+   "misses": []
+  },
+  "F3-04": {
+   "passed": true,
+   "misses": []
+  },
+  "F3-05": {
+   "passed": true,
+   "misses": []
+  },
+  "F4-01": {
+   "passed": true,
+   "misses": []
+  },
+  "F4-02": {
+   "passed": true,
+   "misses": []
+  },
+  "F4-03": {
+   "passed": true,
+   "misses": []
+  },
+  "F4-04": {
+   "passed": true,
+   "misses": []
+  },
+  "F4-05": {
+   "passed": true,
+   "misses": []
+  },
+  "F5-01": {
+   "passed": true,
+   "misses": []
+  },
+  "F5-02": {
+   "passed": true,
+   "misses": []
+  },
+  "F5-03": {
+   "passed": true,
+   "misses": []
+  },
+  "F5-04": {
+   "passed": true,
+   "misses": []
+  },
+  "F5-05": {
+   "passed": true,
+   "misses": []
+  },
+  "S-01": {
+   "passed": true,
+   "misses": []
+  },
+  "S-02": {
+   "passed": true,
+   "misses": []
+  },
+  "S-03": {
+   "passed": true,
+   "misses": []
+  },
+  "S-04": {
+   "passed": true,
+   "misses": []
+  },
+  "S-05": {
+   "passed": true,
+   "misses": []
+  },
+  "W-01": {
+   "passed": true,
+   "misses": []
+  },
+  "W-02": {
+   "passed": true,
+   "misses": []
+  },
+  "W-03": {
+   "passed": true,
+   "misses": []
+  },
+  "W-04": {
+   "passed": true,
+   "misses": []
+  },
+  "W-05": {
+   "passed": true,
+   "misses": []
+  },
+  "W-06": {
+   "passed": true,
+   "misses": []
+  },
+  "W-07": {
+   "passed": true,
+   "misses": []
+  },
+  "H-01": {
+   "passed": true,
+   "misses": []
+  },
+  "H-02": {
+   "passed": true,
+   "misses": []
+  },
+  "H-03": {
+   "passed": true,
+   "misses": []
+  },
+  "H-04": {
+   "passed": true,
+   "misses": []
+  },
+  "H-05": {
+   "passed": false,
+   "misses": [
+    "handoff flow: route error for 'person please', expected handoff"
+   ]
+  },
+  "HO-R1-01": {
+   "passed": true,
+   "misses": []
+  },
+  "HO-R1-02": {
+   "passed": true,
+   "misses": []
+  },
+  "HO-R1-03": {
+   "passed": true,
+   "misses": []
+  },
+  "HO-R1-04": {
+   "passed": true,
+   "misses": []
+  },
+  "HO-R2-01": {
+   "passed": true,
+   "misses": []
+  },
+  "HO-R2-02": {
+   "passed": true,
+   "misses": []
+  },
+  "HO-R2-03": {
+   "passed": true,
+   "misses": []
+  },
+  "HO-R2-04": {
+   "passed": true,
+   "misses": []
+  },
+  "HO-R3-01": {
+   "passed": true,
+   "misses": []
+  },
+  "HO-R3-02": {
+   "passed": true,
+   "misses": []
+  },
+  "HO-R3-03": {
+   "passed": true,
+   "misses": []
+  },
+  "HO-R3-04": {
+   "passed": true,
+   "misses": []
+  },
+  "HO-R4-01": {
+   "passed": true,
+   "misses": []
+  },
+  "HO-R4-02": {
+   "passed": true,
+   "misses": []
+  },
+  "HO-R4-03": {
+   "passed": true,
+   "misses": []
+  },
+  "HO-R4-04": {
+   "passed": true,
+   "misses": []
+  },
+  "HO-R5-01": {
+   "passed": true,
+   "misses": []
+  },
+  "HO-R5-02": {
+   "passed": true,
+   "misses": []
+  },
+  "HO-R5-03": {
+   "passed": true,
+   "misses": []
+  },
+  "HO-R5-04": {
+   "passed": true,
+   "misses": []
+  },
+  "HO-R6-01": {
+   "passed": true,
+   "misses": []
+  },
+  "HO-R6-02": {
+   "passed": true,
+   "misses": []
+  },
+  "HO-R6-03": {
+   "passed": true,
+   "misses": []
+  },
+  "HO-R7-01": {
+   "passed": true,
+   "misses": []
+  },
+  "HO-R7-02": {
+   "passed": true,
+   "misses": []
+  },
+  "HO-R7-03": {
+   "passed": true,
+   "misses": []
+  },
+  "HO-R8-01": {
+   "passed": true,
+   "misses": []
+  },
+  "HO-R8-02": {
+   "passed": true,
+   "misses": []
+  },
+  "HO-R8-03": {
+   "passed": true,
+   "misses": []
+  },
+  "HO-R9-01": {
+   "passed": true,
+   "misses": []
+  },
+  "HO-R9-02": {
+   "passed": true,
+   "misses": []
+  },
+  "HO-R9-03": {
+   "passed": true,
+   "misses": []
+  },
+  "HO-R10-01": {
+   "passed": true,
+   "misses": []
+  },
+  "HO-R10-02": {
+   "passed": true,
+   "misses": []
+  },
+  "HO-R10-03": {
+   "passed": false,
+   "misses": [
+    "route human_mode, expected answer"
+   ]
+  },
+  "HO-R10-04": {
+   "passed": true,
+   "misses": []
+  },
+  "HO-F1-01": {
+   "passed": true,
+   "misses": []
+  },
+  "HO-F1-02": {
+   "passed": true,
+   "misses": []
+  },
+  "HO-F1-03": {
+   "passed": true,
+   "misses": []
+  },
+  "HO-F1-04": {
+   "passed": true,
+   "misses": []
+  },
+  "HO-F2-01": {
+   "passed": true,
+   "misses": []
+  },
+  "HO-F2-02": {
+   "passed": true,
+   "misses": []
+  },
+  "HO-F2-03": {
+   "passed": true,
+   "misses": []
+  },
+  "HO-F2-04": {
+   "passed": true,
+   "misses": []
+  },
+  "HO-F3-01": {
+   "passed": true,
+   "misses": []
+  },
+  "HO-F3-02": {
+   "passed": true,
+   "misses": []
+  },
+  "HO-F3-03": {
+   "passed": true,
+   "misses": []
+  },
+  "HO-F4-01": {
+   "passed": true,
+   "misses": []
+  },
+  "HO-F4-02": {
+   "passed": true,
+   "misses": []
+  },
+  "HO-F4-03": {
+   "passed": true,
+   "misses": []
+  },
+  "HO-F5-01": {
+   "passed": true,
+   "misses": []
+  },
+  "HO-F5-02": {
+   "passed": true,
+   "misses": []
+  },
+  "HO-F5-03": {
+   "passed": true,
+   "misses": []
+  },
+  "HO-S-01": {
+   "passed": true,
+   "misses": []
+  },
+  "HO-S-02": {
+   "passed": true,
+   "misses": []
+  },
+  "HO-W-01": {
+   "passed": true,
+   "misses": []
+  },
+  "HO-W-02": {
+   "passed": true,
+   "misses": []
+  },
+  "HO-H-01": {
+   "passed": true,
+   "misses": []
+  },
+  "HO-H-02": {
+   "passed": true,
+   "misses": []
+  }
+ },
+ "groups": {
+  "R1-01": "rate",
+  "R1-02": "rate",
+  "R1-03": "rate",
+  "R1-04": "rate",
+  "R1-05": "rate",
+  "R1-06": "rate",
+  "R1-07": "rate",
+  "R2-01": "rate",
+  "R2-02": "rate",
+  "R2-03": "rate",
+  "R2-04": "rate",
+  "R2-05": "rate",
+  "R2-06": "rate",
+  "R3-01": "rate",
+  "R3-02": "rate",
+  "R3-03": "rate",
+  "R3-04": "rate",
+  "R3-05": "rate",
+  "R4-01": "rate",
+  "R4-02": "rate",
+  "R4-03": "rate",
+  "R4-04": "rate",
+  "R4-05": "rate",
+  "R5-01": "rate",
+  "R5-02": "rate",
+  "R5-03": "rate",
+  "R5-04": "rate",
+  "R5-05": "rate",
+  "R5-06": "rate",
+  "R6-01": "rate",
+  "R6-02": "rate",
+  "R6-03": "rate",
+  "R6-04": "rate",
+  "R6-05": "rate",
+  "R7-01": "rate",
+  "R7-02": "rate",
+  "R7-03": "rate",
+  "R7-04": "rate",
+  "R7-05": "rate",
+  "R8-01": "rate",
+  "R8-02": "rate",
+  "R8-03": "rate",
+  "R8-04": "rate",
+  "R8-05": "rate",
+  "R9-01": "rate",
+  "R9-02": "rate",
+  "R9-03": "rate",
+  "R9-04": "rate",
+  "R9-05": "rate",
+  "R10-01": "rate",
+  "R10-02": "rate",
+  "R10-03": "rate",
+  "R10-04": "rate",
+  "R10-05": "rate",
+  "R10-06": "rate",
+  "F1-01": "critical",
+  "F1-02": "critical",
+  "F1-03": "critical",
+  "F1-04": "critical",
+  "F1-05": "critical",
+  "F2-01": "critical",
+  "F2-02": "critical",
+  "F2-03": "critical",
+  "F2-04": "critical",
+  "F2-05": "critical",
+  "F3-01": "critical",
+  "F3-02": "critical",
+  "F3-03": "critical",
+  "F3-04": "critical",
+  "F3-05": "critical",
+  "F4-01": "critical",
+  "F4-02": "critical",
+  "F4-03": "critical",
+  "F4-04": "critical",
+  "F4-05": "critical",
+  "F5-01": "critical",
+  "F5-02": "critical",
+  "F5-03": "critical",
+  "F5-04": "critical",
+  "F5-05": "critical",
+  "S-01": "code",
+  "S-02": "code",
+  "S-03": "code",
+  "S-04": "code",
+  "S-05": "code",
+  "W-01": "code",
+  "W-02": "code",
+  "W-03": "code",
+  "W-04": "code",
+  "W-05": "code",
+  "W-06": "code",
+  "W-07": "code",
+  "H-01": "code",
+  "H-02": "code",
+  "H-03": "code",
+  "H-04": "code",
+  "H-05": "code",
+  "HO-R1-01": "rate",
+  "HO-R1-02": "rate",
+  "HO-R1-03": "rate",
+  "HO-R1-04": "rate",
+  "HO-R2-01": "rate",
+  "HO-R2-02": "rate",
+  "HO-R2-03": "rate",
+  "HO-R2-04": "rate",
+  "HO-R3-01": "rate",
+  "HO-R3-02": "rate",
+  "HO-R3-03": "rate",
+  "HO-R3-04": "rate",
+  "HO-R4-01": "rate",
+  "HO-R4-02": "rate",
+  "HO-R4-03": "rate",
+  "HO-R4-04": "rate",
+  "HO-R5-01": "rate",
+  "HO-R5-02": "rate",
+  "HO-R5-03": "rate",
+  "HO-R5-04": "rate",
+  "HO-R6-01": "rate",
+  "HO-R6-02": "rate",
+  "HO-R6-03": "rate",
+  "HO-R7-01": "rate",
+  "HO-R7-02": "rate",
+  "HO-R7-03": "rate",
+  "HO-R8-01": "rate",
+  "HO-R8-02": "rate",
+  "HO-R8-03": "rate",
+  "HO-R9-01": "rate",
+  "HO-R9-02": "rate",
+  "HO-R9-03": "rate",
+  "HO-R10-01": "rate",
+  "HO-R10-02": "rate",
+  "HO-R10-03": "rate",
+  "HO-R10-04": "rate",
+  "HO-F1-01": "critical",
+  "HO-F1-02": "critical",
+  "HO-F1-03": "critical",
+  "HO-F1-04": "critical",
+  "HO-F2-01": "critical",
+  "HO-F2-02": "critical",
+  "HO-F2-03": "critical",
+  "HO-F2-04": "critical",
+  "HO-F3-01": "critical",
+  "HO-F3-02": "critical",
+  "HO-F3-03": "critical",
+  "HO-F4-01": "critical",
+  "HO-F4-02": "critical",
+  "HO-F4-03": "critical",
+  "HO-F5-01": "critical",
+  "HO-F5-02": "critical",
+  "HO-F5-03": "critical",
+  "HO-S-01": "code",
+  "HO-S-02": "code",
+  "HO-W-01": "code",
+  "HO-W-02": "code",
+  "HO-H-01": "code",
+  "HO-H-02": "code"
+ }
+}
