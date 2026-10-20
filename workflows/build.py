@@ -24,7 +24,8 @@ import bot_js as J  # noqa: E402
 import grading  # noqa: E402
 
 BASE = "http://localhost:5678"
-MODEL = "claude-sonnet-5-5"   # until the model check (evals/eval_config.yaml runs.model) picks the gated model
+import os
+MODEL = os.environ.get("Q123_MODEL", "claude-sonnet-5-5")   # model check (evals/model_check.yaml) picks the gated model
 FLOOR = 0.20                  # logged only (visible-1: a floor shortcut skipped Claude and missed a complaint, R9-03)
 SLACK_CHANNEL = "#support-handoff"
 SHORT = "n8n-ai-support-bot"

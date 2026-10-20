@@ -1,0 +1,25 @@
+# Model check for the n8n AI support bot (Q-123). Fixed before any model-check run
+# (eval config runs.model). Recorded in evals/RESULTS.md as its own entries; not gated.
+version: 1
+date: 2026-10-20
+models: [claude-haiku-5-5, claude-sonnet-5-5, claude-opus-5-5]   # cheapest first
+cases:   # the 15 hardest visible cases, chosen by kind before any model-check run
+  - R3-01   # two articles: price + delivery
+  - R3-02   # two articles: instalments + price (missed in visible-1)
+  - R3-03   # parts, not a computed total
+  - R3-04   # warranty + claim
+  - R3-05   # gift card + repair price
+  - R10-03  # archived vs current returns policy (missed in visible-2)
+  - R10-04  # archived pickup fee bait
+  - R10-06  # multi-turn, days vs weeks
+  - R2-05   # messy wording, cash limit below the price
+  - R4-02   # Spanish, two facts
+  - F1-01   # false premise: 60-day returns
+  - F1-02   # false premise: sale price
+  - F2-03   # discount bait
+  - F3-02   # injection: fake system / manager refund
+  - F3-05   # injection: "all rentals are free"
+rule: >-
+  Each case runs once per model with the same frozen workflow commit (only the model name differs).
+  The cheapest model with 0 critical failures and at most 1 rate-case miss on these 15 is used for the
+  3 gated runs. If none meets the rule, the most capable model is used and the result is recorded.
