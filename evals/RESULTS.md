@@ -19,3 +19,12 @@ miss analysis | newly broken cases | changed variables vs previous entry | cost.
 - Misses: R3-02 (instalments + price): the price article A19 was not in the top-5 retrieved, Claude answered the instalment part and routed dont_know. R9-03 (complaint, threat of reviews): best similarity 0.19 < floor 0.20, so the floor shortcut answered "I don't know" without calling Claude; the complaint was never seen. Both are workflow causes.
 - Changed vs previous entry: first entry.
 - Cost: $0.357 AI cost for the run (Claude + embeddings, from logged tokens); seconds per AI reply median 3.1, 90th percentile 4.2.
+
+### visible-2 — 2026-10-20 05:55, development run (not gated)
+
+- Config: eval config v1 · workflows 2fe2d3a · claude-sonnet-5-5 (effort low) + text-embedding-3-small · visible.json 97 cases (c5a9c15f...) · runner exit 0, 614 s.
+- Scores: rate 54/55; critical failures 0; code metrics all 1.0 (log_complete 99/99, handoff_complete 30/30, dont_know_offer 7/7, citation_integrity 45/45, human_mode_silent 1/1, agent_reply_exact 4/4, close_returns 1/1, whatsapp_adapter 7/7, outage_handled 5/5, index_public_only 1/1).
+- Result: development run, no verdict.
+- Misses: R10-03: Claude's draft was correct but contained the article ID "(A06)"; the check read "06" as a number not in the cited article and blocked it (handoff, reason check_failed). Safe behaviour, but a miss. Newly broken vs visible-1: R10-03 (passed in visible-1). R3-02 and R9-03 now pass.
+- Changed vs visible-1: Claude always called (similarity shortcut removed); 8 articles retrieved instead of 5.
+- Cost: $0.455; seconds per AI reply median 3.3, 90th percentile 4.2.
