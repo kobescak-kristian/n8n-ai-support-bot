@@ -119,3 +119,10 @@ miss analysis | newly broken cases | changed variables vs previous entry | cost.
 - Scores: rate 2/2; code cases 6/6 (code_cases_pass 6/6); outage_handled 4/4; critical failures 0; all code metrics 1.0.
 - The 4 simulated outages now log their error ("The service refused the connection") and take 2.4-5.7 s with the retry.
 - Result: development check, no verdict. Claims about this version need its own gated series.
+
+### gated-seen-1..3 secondary metrics (reported, not gated) — computed 2026-10-20 from the runs' raw reports
+
+- Customer messages logged: 531 over the 3 runs; replies that called Claude: 430.
+- Seconds from message received to reply, replies that called Claude: median 2.6, 90th percentile 3.5.
+- AI cost (Claude + embeddings, from logged tokens): $0.122 for the 3 runs, $0.00023 per customer message.
+- Handoffs: 142 of 531 messages (26.7%), most by design (person requests, complaints, safety, order status).
