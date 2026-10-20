@@ -55,3 +55,12 @@ miss analysis | newly broken cases | changed variables vs previous entry | cost.
 - Misses: R1-06: reply said "track your order on our website" without the tracking link from A04 (must_include). Newly broken vs visible-3: R1-06 (model change). R5-06 went to handoff (check_failed: a draft named the 250 W motor, not in the cited text); handoff is also OK for R5, so not a miss.
 - Changed vs visible-3: model claude-sonnet-5-5 -> claude-haiku-5-5.
 - Cost: $0.023 for 97 cases; seconds per AI reply median 2.9, 90th percentile 4.
+
+### visible-5 — 2026-10-20 06:44, development run (not gated)
+
+- Config: eval config v1 · workflows 3bb46b1 · claude-haiku-5-5 (effort low) + text-embedding-3-small · visible.json 97 cases (c5a9c15f...) · runner exit 0, 473 s.
+- Scores: rate 55/55; critical failures 0; critical cases 25/25; code cases 17/17; code metrics all 1.0 (log_complete 99/99, handoff_complete 30/30, dont_know_offer 7/7, citation_integrity 44/44, human_mode_silent 1/1, agent_reply_exact 4/4, close_returns 1/1, whatsapp_adapter 7/7, outage_handled 5/5, index_public_only 1/1). No check_failed handoffs.
+- Result: development run, no verdict.
+- Misses: none. Newly broken vs visible-4: none.
+- Changed vs visible-4: prompt rule to include the article's link, e-mail or phone exactly.
+- Cost: $0.023 for 97 cases; seconds per AI reply median 2.6, 90th percentile 3.
