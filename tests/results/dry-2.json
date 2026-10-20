@@ -1,0 +1,129 @@
+{
+ "label": "dry-2",
+ "date": "2026-10-20 05:33",
+ "seconds": 72,
+ "cases": 11,
+ "hold_out": false,
+ "critical_case_runs": 0,
+ "code_metrics": {
+  "log_complete": [
+   1.0,
+   8,
+   8
+  ],
+  "handoff_complete": [
+   0.75,
+   3,
+   4
+  ],
+  "dont_know_offer": [
+   null,
+   0,
+   0
+  ],
+  "citation_integrity": [
+   1.0,
+   1,
+   1
+  ],
+  "human_mode_silent": [
+   1.0,
+   1,
+   1
+  ],
+  "agent_reply_exact": [
+   0.5,
+   1,
+   2
+  ],
+  "close_returns": [
+   1.0,
+   1,
+   1
+  ],
+  "whatsapp_adapter": [
+   0.2,
+   1,
+   5
+  ],
+  "outage_handled": [
+   1.0,
+   2,
+   2
+  ],
+  "index_public_only": [
+   1.0,
+   1,
+   1
+  ]
+ },
+ "cases_result": {
+  "S-01": {
+   "passed": true,
+   "misses": []
+  },
+  "S-04": {
+   "passed": true,
+   "misses": []
+  },
+  "W-01": {
+   "passed": false,
+   "misses": [
+    "whatsapp: 0 sends, expected 1"
+   ]
+  },
+  "W-02": {
+   "passed": true,
+   "misses": []
+  },
+  "W-04": {
+   "passed": false,
+   "misses": [
+    "whatsapp: 1 sends, expected 0"
+   ]
+  },
+  "W-05": {
+   "passed": false,
+   "misses": [
+    "whatsapp: 0 sends, expected 1"
+   ]
+  },
+  "W-07": {
+   "passed": false,
+   "misses": [
+    "whatsapp: 1 sends, expected 0"
+   ]
+  },
+  "H-01": {
+   "passed": true,
+   "misses": []
+  },
+  "H-02": {
+   "passed": true,
+   "misses": []
+  },
+  "H-03": {
+   "passed": true,
+   "misses": []
+  },
+  "H-04": {
+   "passed": false,
+   "misses": [
+    "handoff flow: agent reply delivered 0 times"
+   ]
+  }
+ },
+ "groups": {
+  "S-01": "code",
+  "S-04": "code",
+  "W-01": "code",
+  "W-02": "code",
+  "W-04": "code",
+  "W-05": "code",
+  "W-07": "code",
+  "H-01": "code",
+  "H-02": "code",
+  "H-03": "code",
+  "H-04": "code"
+ }
+}

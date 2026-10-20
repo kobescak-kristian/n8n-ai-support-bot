@@ -128,6 +128,20 @@ def wa_sends():
     return r if s == 200 else []
 
 
+def wait_sends(before, expect, quiet=6.0, limit=60.0):
+    """WhatsApp replies are sent after the entry has answered Meta, so wait: until at least `expect` new sends
+    arrived and nothing new came for `quiet` seconds (or `limit` seconds passed)."""
+    t0, last_n, last_change = time.time(), -1, time.time()
+    while time.time() - t0 < limit:
+        n = len(wa_sends()) - before
+        if n != last_n:
+            last_n, last_change = n, time.time()
+        if n >= expect and time.time() - last_change >= quiet:
+            break
+        time.sleep(0.5)
+    return wa_sends()[before:]
+
+
 def wa_reset():
     http("POST", WA_MOCK + "/_reset", body={})
 
@@ -151,10 +165,16 @@ def play(bot, c):
                                  "resp": bot.message(f"{base}:m", c["channel"], t, simulate=c["simulate"])})
     elif c["kind"] == "W":
         before = len(wa_sends())
+        def _wait_one(n0=None, limit=20.0):
+            n0 = len(wa_sends()) if n0 is None else n0
+            t0 = time.time()
+            while time.time() - t0 < limit and len(wa_sends()) <= n0:
+                time.sleep(0.5)
         for p in c["payloads"]:
+            n_before = len(wa_sends())
             rec["steps"].append({"payload_id": _wa_ids(p), "http": bot.whatsapp(p, c.get("signature", "good"))})
-        time.sleep(2)
-        rec["wa_sends"] = wa_sends()[before:]
+            _wait_one(n_before)  # let this payload finish (memory for the next one) or time out
+        rec["wa_sends"] = wait_sends(before, len(c["expected"]["sends"]), quiet=8 if not c["expected"]["sends"] else 4)
     elif c["kind"] == "H":
         before = len(wa_sends())
         for st in c["script"]:
@@ -163,16 +183,17 @@ def play(bot, c):
                 conv = "wa:" + c["wa_id"]
             if "customer" in st:
                 if c["channel"] == "whatsapp":
+                    n0 = len(wa_sends())
                     rec["steps"].append({"conv": conv, "sent": st["customer"],
                                          "http": bot.whatsapp(_wa_text(c["wa_id"], st["customer"], len(rec["steps"])))})
+                    wait_sends(n0, 1, quiet=2)  # the bot's reply (or handoff text) is sent once the core is done
                 else:
                     rec["steps"].append({"conv": conv, "sent": st["customer"], "resp": bot.message(conv, "webchat", st["customer"])})
             elif "agent_reply" in st:
                 rec["steps"].append({"conv": conv, "agent_reply": st["agent_reply"], "http": bot.agent(conv, "reply", st["agent_reply"])})
             elif st.get("agent_close"):
                 rec["steps"].append({"conv": conv, "agent_close": True, "http": bot.agent(conv, "close")})
-        time.sleep(2)
-        rec["wa_sends"] = wa_sends()[before:]
+        rec["wa_sends"] = wait_sends(before, 0, quiet=4)
     return rec
 
 

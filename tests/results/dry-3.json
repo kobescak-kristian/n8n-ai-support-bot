@@ -1,0 +1,134 @@
+{
+ "label": "dry-3",
+ "date": "2026-10-20 05:40",
+ "seconds": 221,
+ "cases": 14,
+ "hold_out": false,
+ "critical_case_runs": 0,
+ "code_metrics": {
+  "log_complete": [
+   1.0,
+   10,
+   10
+  ],
+  "handoff_complete": [
+   1.0,
+   5,
+   5
+  ],
+  "dont_know_offer": [
+   null,
+   0,
+   0
+  ],
+  "citation_integrity": [
+   1.0,
+   1,
+   1
+  ],
+  "human_mode_silent": [
+   1.0,
+   1,
+   1
+  ],
+  "agent_reply_exact": [
+   1.0,
+   4,
+   4
+  ],
+  "close_returns": [
+   1.0,
+   1,
+   1
+  ],
+  "whatsapp_adapter": [
+   1.0,
+   7,
+   7
+  ],
+  "outage_handled": [
+   1.0,
+   2,
+   2
+  ],
+  "index_public_only": [
+   1.0,
+   1,
+   1
+  ]
+ },
+ "cases_result": {
+  "S-01": {
+   "passed": true,
+   "misses": []
+  },
+  "S-04": {
+   "passed": true,
+   "misses": []
+  },
+  "W-01": {
+   "passed": true,
+   "misses": []
+  },
+  "W-02": {
+   "passed": true,
+   "misses": []
+  },
+  "W-03": {
+   "passed": true,
+   "misses": []
+  },
+  "W-04": {
+   "passed": true,
+   "misses": []
+  },
+  "W-05": {
+   "passed": true,
+   "misses": []
+  },
+  "W-06": {
+   "passed": true,
+   "misses": []
+  },
+  "W-07": {
+   "passed": true,
+   "misses": []
+  },
+  "H-01": {
+   "passed": true,
+   "misses": []
+  },
+  "H-02": {
+   "passed": true,
+   "misses": []
+  },
+  "H-03": {
+   "passed": true,
+   "misses": []
+  },
+  "H-04": {
+   "passed": true,
+   "misses": []
+  },
+  "H-05": {
+   "passed": true,
+   "misses": []
+  }
+ },
+ "groups": {
+  "S-01": "code",
+  "S-04": "code",
+  "W-01": "code",
+  "W-02": "code",
+  "W-03": "code",
+  "W-04": "code",
+  "W-05": "code",
+  "W-06": "code",
+  "W-07": "code",
+  "H-01": "code",
+  "H-02": "code",
+  "H-03": "code",
+  "H-04": "code",
+  "H-05": "code"
+ }
+}

@@ -1,0 +1,74 @@
+{
+ "label": "dry-1",
+ "date": "2026-10-20 05:31",
+ "seconds": 16,
+ "cases": 2,
+ "hold_out": false,
+ "critical_case_runs": 0,
+ "code_metrics": {
+  "log_complete": [
+   1.0,
+   2,
+   2
+  ],
+  "handoff_complete": [
+   1.0,
+   1,
+   1
+  ],
+  "dont_know_offer": [
+   null,
+   0,
+   0
+  ],
+  "citation_integrity": [
+   1.0,
+   1,
+   1
+  ],
+  "human_mode_silent": [
+   null,
+   0,
+   0
+  ],
+  "agent_reply_exact": [
+   null,
+   0,
+   0
+  ],
+  "close_returns": [
+   null,
+   0,
+   0
+  ],
+  "whatsapp_adapter": [
+   null,
+   0,
+   0
+  ],
+  "outage_handled": [
+   null,
+   0,
+   0
+  ],
+  "index_public_only": [
+   1.0,
+   1,
+   1
+  ]
+ },
+ "cases_result": {
+  "R1-01": {
+   "passed": true,
+   "misses": []
+  },
+  "R7-01": {
+   "passed": true,
+   "misses": []
+  }
+ },
+ "groups": {
+  "R1-01": "rate",
+  "R7-01": "rate"
+ }
+}

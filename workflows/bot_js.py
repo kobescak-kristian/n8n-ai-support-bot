@@ -231,7 +231,7 @@ f.alert_status = f.outage ? (sent ? 'sent' : 'failed') : '';
 f.mode_after = '';
 if (f.route === 'handoff') {
   if (sent) f.mode_after = 'human';
-  else { f.reply = FIXED.FALLBACK_TEXT; f.alert_status = 'failed'; f.checks = { ...f.checks, handoff_failed: true }; }
+  else { f.route = 'error'; f.reason = 'outage_slack'; f.reply = FIXED.FALLBACK_TEXT; f.alert_status = 'failed'; f.checks = { ...f.checks, handoff_failed: true }; }
 }
 return [{ json: f }];
 """
