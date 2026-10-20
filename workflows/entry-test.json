@@ -1,0 +1,143 @@
+{
+ "name": "Q123 Entry: test message",
+ "nodes": [
+  {
+   "id": "3045058d-3b44-5792-a733-2c5a15d756d5",
+   "name": "Test message",
+   "type": "n8n-nodes-base.webhook",
+   "typeVersion": 2.1,
+   "position": [
+    0,
+    0
+   ],
+   "parameters": {
+    "httpMethod": "POST",
+    "path": "q123-message",
+    "responseMode": "responseNode",
+    "options": {},
+    "authentication": "headerAuth"
+   },
+   "credentials": {
+    "httpHeaderAuth": {
+     "id": "__CRED:webhookKey__",
+     "name": "Webhook n8n-support-bot"
+    }
+   },
+   "webhookId": "b69f6006-387b-56e3-9e36-d51498411caa"
+  },
+  {
+   "id": "42b7a9ee-596a-5d62-99ee-589efc3e7e55",
+   "name": "To core input",
+   "type": "n8n-nodes-base.code",
+   "typeVersion": 2,
+   "position": [
+    260,
+    0
+   ],
+   "parameters": {
+    "jsCode": "const b = $json.body || {};\nreturn [{ json: { conversation_id: String(b.conversation_id || ''), channel: b.channel === 'whatsapp' ? 'whatsapp' : 'webchat',\n  text: String(b.text || ''), simulate: b.simulate || null, run_label: String(b.run_label || 'demo'), message_id: '' } }];\n"
+   }
+  },
+  {
+   "id": "5744bdf4-6285-5038-91c1-00f751602a32",
+   "name": "Answer",
+   "type": "n8n-nodes-base.executeWorkflow",
+   "typeVersion": 1.2,
+   "position": [
+    520,
+    0
+   ],
+   "parameters": {
+    "source": "database",
+    "workflowId": {
+     "__rl": true,
+     "mode": "id",
+     "value": "__WF:core__"
+    },
+    "mode": "once",
+    "options": {
+     "waitForSubWorkflow": true
+    }
+   }
+  },
+  {
+   "id": "3081eb00-9901-5906-b123-b3d88baa568a",
+   "name": "Reply",
+   "type": "n8n-nodes-base.code",
+   "typeVersion": 2,
+   "position": [
+    780,
+    0
+   ],
+   "parameters": {
+    "jsCode": "const r = $json;\nreturn [{ json: { route: r.route ?? null, reply: r.reply ?? null, cited: r.cited || [], reason: r.reason ?? null, log_id: r.log_id ?? null } }];\n"
+   }
+  },
+  {
+   "id": "8c564bb0-3016-5b33-aa4d-aaf529b7c8a6",
+   "name": "Send reply",
+   "type": "n8n-nodes-base.respondToWebhook",
+   "typeVersion": 1.4,
+   "position": [
+    1040,
+    0
+   ],
+   "parameters": {
+    "respondWith": "json",
+    "responseBody": "={{ JSON.stringify($json) }}",
+    "options": {
+     "responseCode": 200
+    }
+   }
+  }
+ ],
+ "connections": {
+  "Test message": {
+   "main": [
+    [
+     {
+      "node": "To core input",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "To core input": {
+   "main": [
+    [
+     {
+      "node": "Answer",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Answer": {
+   "main": [
+    [
+     {
+      "node": "Reply",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Reply": {
+   "main": [
+    [
+     {
+      "node": "Send reply",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  }
+ },
+ "settings": {
+  "executionOrder": "v1"
+ }
+}

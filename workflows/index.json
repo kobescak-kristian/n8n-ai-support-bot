@@ -1,0 +1,332 @@
+{
+ "name": "Q123 Index: knowledge base",
+ "nodes": [
+  {
+   "id": "8aaa8e40-f519-56d0-ac74-19d5aa51c908",
+   "name": "Index request",
+   "type": "n8n-nodes-base.webhook",
+   "typeVersion": 2.1,
+   "position": [
+    0,
+    0
+   ],
+   "parameters": {
+    "httpMethod": "POST",
+    "path": "q123-index",
+    "responseMode": "responseNode",
+    "options": {},
+    "authentication": "headerAuth"
+   },
+   "credentials": {
+    "httpHeaderAuth": {
+     "id": "__CRED:webhookKey__",
+     "name": "Webhook n8n-support-bot"
+    }
+   },
+   "webhookId": "88548b65-d0a4-5ddd-9208-2f22165c3f21"
+  },
+  {
+   "id": "3502a345-e7cd-56a1-a332-df2d683930da",
+   "name": "Public articles only",
+   "type": "n8n-nodes-base.code",
+   "typeVersion": 2,
+   "position": [
+    260,
+    0
+   ],
+   "parameters": {
+    "jsCode": "const arts = ($json.body || {}).articles || [];\nconst pub = arts.filter((a) => a.visibility === 'public');\nreturn [{ json: { chunks: pub.map((a) => ({ content: `${a.title}\\n${a.text}`, metadata: { article_id: a.id, title: a.title,\n  visibility: a.visibility, updated: a.updated, status: a.status || 'current' } })), skipped: arts.length - pub.length,\n  url: 'https://api.openai.com/v1/embeddings', body: { model: 'text-embedding-3-small', input: pub.map((a) => `${a.title}\\n${a.text}`) },\n  timeout_ms: 60000 } }];\n"
+   }
+  },
+  {
+   "id": "4d485f53-4de2-58bf-9be3-6f8b6b81642b",
+   "name": "Delete request",
+   "type": "n8n-nodes-base.code",
+   "typeVersion": 2,
+   "position": [
+    520,
+    0
+   ],
+   "parameters": {
+    "jsCode": "return [{ json: { url: '__SUPABASE_URL__/rest/v1/q123_kb_chunks?id=gt.0', body: {}, timeout_ms: 20000 } }];\n"
+   }
+  },
+  {
+   "id": "af45b841-d436-53a4-97e2-be51c2c76b16",
+   "name": "Delete old chunks",
+   "type": "n8n-nodes-base.httpRequest",
+   "typeVersion": 4.2,
+   "position": [
+    780,
+    0
+   ],
+   "parameters": {
+    "method": "DELETE",
+    "url": "={{ $json.url }}",
+    "sendBody": true,
+    "specifyBody": "json",
+    "jsonBody": "={{ JSON.stringify($json.body) }}",
+    "options": {
+     "timeout": "={{ $json.timeout_ms || 20000 }}",
+     "response": {
+      "response": {
+       "fullResponse": true,
+       "neverError": true,
+       "responseFormat": "json"
+      }
+     }
+    },
+    "authentication": "predefinedCredentialType",
+    "nodeCredentialType": "supabaseApi"
+   },
+   "credentials": {
+    "supabaseApi": {
+     "id": "__CRED:supabaseApi__",
+     "name": "Supabase n8n-support-bot"
+    }
+   },
+   "onError": "continueRegularOutput"
+  },
+  {
+   "id": "2926c3ad-966f-5a42-b1a4-8dbaf1f957bb",
+   "name": "Embed request",
+   "type": "n8n-nodes-base.code",
+   "typeVersion": 2,
+   "position": [
+    1040,
+    0
+   ],
+   "parameters": {
+    "jsCode": "return [$('Public articles only').first()];\n"
+   }
+  },
+  {
+   "id": "d1a4ee61-3585-553b-8ee2-9c0b102b1f5f",
+   "name": "Embed articles",
+   "type": "n8n-nodes-base.httpRequest",
+   "typeVersion": 4.2,
+   "position": [
+    1300,
+    0
+   ],
+   "parameters": {
+    "method": "POST",
+    "url": "={{ $json.url }}",
+    "sendBody": true,
+    "specifyBody": "json",
+    "jsonBody": "={{ JSON.stringify($json.body) }}",
+    "options": {
+     "timeout": "={{ $json.timeout_ms || 20000 }}",
+     "response": {
+      "response": {
+       "fullResponse": true,
+       "neverError": true,
+       "responseFormat": "json"
+      }
+     }
+    },
+    "authentication": "predefinedCredentialType",
+    "nodeCredentialType": "openAiApi"
+   },
+   "credentials": {
+    "openAiApi": {
+     "id": "__CRED:openAiApi__",
+     "name": "OpenAI n8n-support-bot"
+    }
+   },
+   "onError": "continueRegularOutput"
+  },
+  {
+   "id": "3321ff3f-49f0-518b-9310-a0b94b74b4d1",
+   "name": "Chunk rows",
+   "type": "n8n-nodes-base.code",
+   "typeVersion": 2,
+   "position": [
+    1560,
+    0
+   ],
+   "parameters": {
+    "jsCode": "const c = $('Public articles only').first().json;\nconst e = $('Embed articles').first().json;\nconst data = e && e.statusCode === 200 ? e.body.data : null;\nif (!data || data.length !== c.chunks.length) return [{ json: { ok: false, error: 'embedding failed', url: '', body: [] } }];\nreturn [{ json: { ok: true, url: '__SUPABASE_URL__/rest/v1/q123_kb_chunks',\n  body: c.chunks.map((ch, i) => ({ ...ch, embedding: data[i].embedding })), timeout_ms: 60000 } }];\n"
+   }
+  },
+  {
+   "id": "2437b78a-ad66-5c65-9d45-431f0bd2a122",
+   "name": "Insert chunks",
+   "type": "n8n-nodes-base.httpRequest",
+   "typeVersion": 4.2,
+   "position": [
+    1820,
+    0
+   ],
+   "parameters": {
+    "method": "POST",
+    "url": "={{ $json.url }}",
+    "sendBody": true,
+    "specifyBody": "json",
+    "jsonBody": "={{ JSON.stringify($json.body) }}",
+    "options": {
+     "timeout": "={{ $json.timeout_ms || 20000 }}",
+     "response": {
+      "response": {
+       "fullResponse": true,
+       "neverError": true,
+       "responseFormat": "json"
+      }
+     }
+    },
+    "authentication": "predefinedCredentialType",
+    "nodeCredentialType": "supabaseApi",
+    "sendHeaders": true,
+    "headerParameters": {
+     "parameters": [
+      {
+       "name": "Prefer",
+       "value": "return=minimal"
+      }
+     ]
+    }
+   },
+   "credentials": {
+    "supabaseApi": {
+     "id": "__CRED:supabaseApi__",
+     "name": "Supabase n8n-support-bot"
+    }
+   },
+   "onError": "continueRegularOutput"
+  },
+  {
+   "id": "d5b23182-5685-5ce1-8b16-249cf4acff11",
+   "name": "Summary",
+   "type": "n8n-nodes-base.code",
+   "typeVersion": 2,
+   "position": [
+    2080,
+    0
+   ],
+   "parameters": {
+    "jsCode": "const c = $('Public articles only').first().json, ins = $('Insert chunks').first().json;\nreturn [{ json: { indexed: ins && ins.statusCode >= 200 && ins.statusCode < 300 ? c.chunks.length : 0, skipped_internal: c.skipped,\n  insert_status: ins ? ins.statusCode : null } }];\n"
+   }
+  },
+  {
+   "id": "9513dc1f-6ee4-5e75-a0f2-9c859aed6e96",
+   "name": "Indexed",
+   "type": "n8n-nodes-base.respondToWebhook",
+   "typeVersion": 1.4,
+   "position": [
+    2340,
+    0
+   ],
+   "parameters": {
+    "respondWith": "json",
+    "responseBody": "={{ JSON.stringify($json) }}",
+    "options": {
+     "responseCode": 200
+    }
+   }
+  }
+ ],
+ "connections": {
+  "Index request": {
+   "main": [
+    [
+     {
+      "node": "Public articles only",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Public articles only": {
+   "main": [
+    [
+     {
+      "node": "Delete request",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Delete request": {
+   "main": [
+    [
+     {
+      "node": "Delete old chunks",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Delete old chunks": {
+   "main": [
+    [
+     {
+      "node": "Embed request",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Embed request": {
+   "main": [
+    [
+     {
+      "node": "Embed articles",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Embed articles": {
+   "main": [
+    [
+     {
+      "node": "Chunk rows",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Chunk rows": {
+   "main": [
+    [
+     {
+      "node": "Insert chunks",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Insert chunks": {
+   "main": [
+    [
+     {
+      "node": "Summary",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Summary": {
+   "main": [
+    [
+     {
+      "node": "Indexed",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  }
+ },
+ "settings": {
+  "executionOrder": "v1"
+ }
+}

@@ -1,0 +1,221 @@
+{
+ "name": "Q123 Test: report",
+ "nodes": [
+  {
+   "id": "d311a6e9-3766-523f-a7ec-fac7f292bdd7",
+   "name": "Report request",
+   "type": "n8n-nodes-base.webhook",
+   "typeVersion": 2.1,
+   "position": [
+    0,
+    0
+   ],
+   "parameters": {
+    "httpMethod": "POST",
+    "path": "q123-report",
+    "responseMode": "responseNode",
+    "options": {},
+    "authentication": "headerAuth"
+   },
+   "credentials": {
+    "httpHeaderAuth": {
+     "id": "__CRED:webhookKey__",
+     "name": "Webhook n8n-support-bot"
+    }
+   },
+   "webhookId": "6586a8d9-e6fa-5361-91da-de31dd60d2b7"
+  },
+  {
+   "id": "24d43159-c65e-5218-881b-1e166486ca8d",
+   "name": "Log rows",
+   "type": "n8n-nodes-base.dataTable",
+   "typeVersion": 1.1,
+   "position": [
+    260,
+    0
+   ],
+   "parameters": {
+    "operation": "get",
+    "dataTableId": {
+     "__rl": true,
+     "mode": "name",
+     "value": "q123_log"
+    },
+    "returnAll": true
+   },
+   "alwaysOutputData": true,
+   "executeOnce": true
+  },
+  {
+   "id": "12f895ed-ba00-5b30-b387-f2d1e448e130",
+   "name": "Agent rows",
+   "type": "n8n-nodes-base.dataTable",
+   "typeVersion": 1.1,
+   "position": [
+    520,
+    0
+   ],
+   "parameters": {
+    "operation": "get",
+    "dataTableId": {
+     "__rl": true,
+     "mode": "name",
+     "value": "q123_agent"
+    },
+    "returnAll": true
+   },
+   "alwaysOutputData": true,
+   "executeOnce": true
+  },
+  {
+   "id": "fdab9e79-dbe1-5f78-8aca-a01f921f8393",
+   "name": "Chunks request",
+   "type": "n8n-nodes-base.code",
+   "typeVersion": 2,
+   "position": [
+    780,
+    0
+   ],
+   "parameters": {
+    "jsCode": "return [{ json: { url: '__SUPABASE_URL__/rest/v1/q123_kb_chunks?select=metadata', timeout_ms: 20000 } }];\n"
+   },
+   "executeOnce": true
+  },
+  {
+   "id": "f014370b-1729-5fc1-bf4b-dc9bcb319016",
+   "name": "Index chunks",
+   "type": "n8n-nodes-base.httpRequest",
+   "typeVersion": 4.2,
+   "position": [
+    1040,
+    0
+   ],
+   "parameters": {
+    "method": "GET",
+    "url": "={{ $json.url }}",
+    "sendBody": false,
+    "options": {
+     "timeout": "={{ $json.timeout_ms || 20000 }}",
+     "response": {
+      "response": {
+       "fullResponse": true,
+       "neverError": true,
+       "responseFormat": "json"
+      }
+     }
+    },
+    "authentication": "predefinedCredentialType",
+    "nodeCredentialType": "supabaseApi"
+   },
+   "credentials": {
+    "supabaseApi": {
+     "id": "__CRED:supabaseApi__",
+     "name": "Supabase n8n-support-bot"
+    }
+   },
+   "onError": "continueRegularOutput"
+  },
+  {
+   "id": "b4b5e3eb-a587-5860-9daa-07b08af46857",
+   "name": "Collect",
+   "type": "n8n-nodes-base.code",
+   "typeVersion": 2,
+   "position": [
+    1300,
+    0
+   ],
+   "parameters": {
+    "jsCode": "const label = String(($('Report request').first().json.body || {}).run_label || '');\nconst all = (n) => $(n).all().map((i) => i.json).filter((j) => j && j.id !== undefined);\nconst log = all('Log rows').filter((r) => !label || r.run_label === label).map((r) => ({ ...r,\n  retrieved: (() => { try { return JSON.parse(r.retrieved || '[]'); } catch (e) { return []; } })(),\n  cited: (() => { try { return JSON.parse(r.cited || '[]'); } catch (e) { return []; } })(),\n  checks: (() => { try { return JSON.parse(r.checks || '{}'); } catch (e) { return {}; } })() }))\n  .sort((a, b) => String(a.ts).localeCompare(String(b.ts)));\nconst handoffs = log.filter((r) => r.route === 'handoff').map((h) => ({ conversation_id: h.conversation_id, reason: h.reason,\n  slack_ok: h.slack_ok, slack_ts: h.slack_ts, slack_text: h.slack_text, form_link: h.form_link,\n  thread_appends: log.filter((r) => r.conversation_id === h.conversation_id && r.route === 'human_mode' && r.slack_ok && r.ts > h.ts).map((r) => r.message) }));\nconst agent = all('Agent rows').filter((r) => !label || r.run_label === label);\nconst outbox = agent.filter((a) => a.action === 'reply' && a.channel === 'webchat' && a.delivered)\n  .map((a) => ({ conversation_id: a.conversation_id, text: a.text, channel: a.channel, at: a.at }));\nconst ch = $('Index chunks').first().json;\nconst metas = ch && ch.statusCode === 200 && Array.isArray(ch.body) ? ch.body.map((r) => r.metadata || {}) : [];\nconst index = { public_article_ids: [...new Set(metas.filter((m) => m.visibility === 'public').map((m) => m.article_id))].sort(),\n  internal_chunks: metas.filter((m) => m.visibility !== 'public' || String(m.article_id || '').startsWith('I')).length, total_chunks: metas.length };\nreturn [{ json: { log, handoffs, outbox, agent, index } }];\n"
+   },
+   "executeOnce": true
+  },
+  {
+   "id": "e0793340-8e69-5dfa-b89d-cc1f76a734e4",
+   "name": "Send report",
+   "type": "n8n-nodes-base.respondToWebhook",
+   "typeVersion": 1.4,
+   "position": [
+    1560,
+    0
+   ],
+   "parameters": {
+    "respondWith": "json",
+    "responseBody": "={{ JSON.stringify($json) }}",
+    "options": {
+     "responseCode": 200
+    }
+   }
+  }
+ ],
+ "connections": {
+  "Report request": {
+   "main": [
+    [
+     {
+      "node": "Log rows",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Log rows": {
+   "main": [
+    [
+     {
+      "node": "Agent rows",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Agent rows": {
+   "main": [
+    [
+     {
+      "node": "Chunks request",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Chunks request": {
+   "main": [
+    [
+     {
+      "node": "Index chunks",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Index chunks": {
+   "main": [
+    [
+     {
+      "node": "Collect",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Collect": {
+   "main": [
+    [
+     {
+      "node": "Send report",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  }
+ },
+ "settings": {
+  "executionOrder": "v1"
+ }
+}

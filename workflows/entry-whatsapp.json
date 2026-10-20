@@ -1,0 +1,604 @@
+{
+ "name": "Q123 Entry: WhatsApp",
+ "nodes": [
+  {
+   "id": "7c232eff-7c5a-5108-9a8a-93c5c8ee9a9b",
+   "name": "WhatsApp handshake",
+   "type": "n8n-nodes-base.webhook",
+   "typeVersion": 2.1,
+   "position": [
+    0,
+    -360
+   ],
+   "parameters": {
+    "httpMethod": "GET",
+    "path": "q123-whatsapp",
+    "responseMode": "responseNode",
+    "options": {}
+   },
+   "webhookId": "3ed21ae1-b846-504a-9cb1-a3c5cb0cd046"
+  },
+  {
+   "id": "5dc0f913-3ea3-55a2-a61a-128947c6cfd9",
+   "name": "Check verify token",
+   "type": "n8n-nodes-base.code",
+   "typeVersion": 2,
+   "position": [
+    260,
+    -360
+   ],
+   "parameters": {
+    "jsCode": "const q = $json.query || {};\nconst ok = q['hub.mode'] === 'subscribe' && q['hub.verify_token'] === '__WA_VERIFY_TOKEN__';\nreturn [{ json: { ok, challenge: ok ? String(q['hub.challenge'] || '') : 'forbidden' } }];\n"
+   }
+  },
+  {
+   "id": "bb65d55f-e4b4-5179-8c76-d703890422c9",
+   "name": "Answer handshake",
+   "type": "n8n-nodes-base.respondToWebhook",
+   "typeVersion": 1.4,
+   "position": [
+    520,
+    -360
+   ],
+   "parameters": {
+    "respondWith": "text",
+    "responseBody": "={{ $json.challenge }}",
+    "options": {
+     "responseCode": "={{ $json.ok ? 200 : 403 }}"
+    }
+   }
+  },
+  {
+   "id": "a3b10c6c-a2c0-5e38-bf17-a123a670a3a0",
+   "name": "WhatsApp message",
+   "type": "n8n-nodes-base.webhook",
+   "typeVersion": 2.1,
+   "position": [
+    0,
+    0
+   ],
+   "parameters": {
+    "httpMethod": "POST",
+    "path": "q123-whatsapp",
+    "responseMode": "responseNode",
+    "options": {
+     "rawBody": true
+    }
+   },
+   "webhookId": "04066cca-2962-5cea-8b38-338412d20cc9"
+  },
+  {
+   "id": "5961138e-3cb7-5984-a293-38a41d124b7d",
+   "name": "Sign raw body",
+   "type": "n8n-nodes-base.crypto",
+   "typeVersion": 2,
+   "position": [
+    260,
+    0
+   ],
+   "parameters": {
+    "action": "hmac",
+    "type": "SHA256",
+    "binaryData": true,
+    "binaryPropertyName": "data",
+    "dataPropertyName": "signature",
+    "encoding": "hex"
+   },
+   "credentials": {
+    "crypto": {
+     "id": "__CRED:waSecret__",
+     "name": "WhatsApp app secret n8n-support-bot (test)"
+    }
+   }
+  },
+  {
+   "id": "aeaf4578-65d5-5d53-b9cc-61e8f9d70106",
+   "name": "Verify signature",
+   "type": "n8n-nodes-base.code",
+   "typeVersion": 2,
+   "position": [
+    520,
+    0
+   ],
+   "parameters": {
+    "jsCode": "const item = $('WhatsApp message').first().json;\nconst header = String((item.headers || {})['x-hub-signature-256'] || '');\nconst sig = String($json.signature || '');\nconst ok = !!sig && header === 'sha256=' + sig;\nconst events = [];\nif (ok) {\n  for (const e of (item.body || {}).entry || []) for (const ch of e.changes || []) {\n    const v = ch.value || {};\n    for (const m of v.messages || []) events.push({ message_id: m.id, wa_id: m.from, phone_number_id: (v.metadata || {}).phone_number_id,\n      type: m.type, text: m.type === 'text' ? String((m.text || {}).body || '') : String(((m[m.type] || {}).caption) || '') });\n  }\n}\nreturn [{ json: { ok, events } }];\n"
+   },
+   "executeOnce": true
+  },
+  {
+   "id": "f751461b-226d-5ec3-9195-8dec52fce596",
+   "name": "Signed?",
+   "type": "n8n-nodes-base.if",
+   "typeVersion": 2.2,
+   "position": [
+    780,
+    0
+   ],
+   "parameters": {
+    "conditions": {
+     "options": {
+      "caseSensitive": true,
+      "leftValue": "",
+      "typeValidation": "loose",
+      "version": 2
+     },
+     "conditions": [
+      {
+       "id": "f751461b-226d-5ec3-9195-8dec52fce596",
+       "leftValue": "={{ $json.ok }}",
+       "rightValue": "",
+       "operator": {
+        "type": "boolean",
+        "operation": "true",
+        "singleValue": true
+       }
+      }
+     ],
+     "combinator": "and"
+    },
+    "looseTypeValidation": true,
+    "options": {}
+   }
+  },
+  {
+   "id": "bff5dc10-6a85-5ebc-9c75-59660e5fa067",
+   "name": "Refuse",
+   "type": "n8n-nodes-base.respondToWebhook",
+   "typeVersion": 1.4,
+   "position": [
+    1040,
+    180
+   ],
+   "parameters": {
+    "respondWith": "json",
+    "responseBody": "={{ JSON.stringify({ error: 'bad signature' }) }}",
+    "options": {
+     "responseCode": 401
+    }
+   }
+  },
+  {
+   "id": "bf9b98c4-3fc1-5f9f-80c9-14c7fbecb302",
+   "name": "Seen ids",
+   "type": "n8n-nodes-base.dataTable",
+   "typeVersion": 1.1,
+   "position": [
+    1040,
+    -180
+   ],
+   "parameters": {
+    "operation": "get",
+    "dataTableId": {
+     "__rl": true,
+     "mode": "name",
+     "value": "q123_seen"
+    },
+    "returnAll": true
+   },
+   "alwaysOutputData": true,
+   "executeOnce": true
+  },
+  {
+   "id": "c3709ca6-38fd-5b2b-a797-db471f94ae00",
+   "name": "Run label",
+   "type": "n8n-nodes-base.dataTable",
+   "typeVersion": 1.1,
+   "position": [
+    1300,
+    -180
+   ],
+   "parameters": {
+    "operation": "get",
+    "dataTableId": {
+     "__rl": true,
+     "mode": "name",
+     "value": "q123_settings"
+    },
+    "returnAll": true
+   },
+   "alwaysOutputData": true,
+   "executeOnce": true
+  },
+  {
+   "id": "db99112f-4e91-5bc9-a79b-6503323034ca",
+   "name": "New messages",
+   "type": "n8n-nodes-base.code",
+   "typeVersion": 2,
+   "position": [
+    1560,
+    -180
+   ],
+   "parameters": {
+    "jsCode": "const v = $('Verify signature').first().json;\nconst seen = new Set($('Seen ids').all().map((i) => i.json.message_id).filter(Boolean));\nconst label = ($('Run label').all().map((i) => i.json).filter((j) => j.run_label).sort((a, b) => String(a.at).localeCompare(String(b.at))).pop() || {}).run_label || 'demo';\nconst fresh = v.events.filter((e) => !seen.has(e.message_id));\nreturn fresh.length ? fresh.map((e) => ({ json: { conversation_id: 'wa:' + e.wa_id, channel: 'whatsapp', text: e.type === 'text' ? e.text : '',\n  media: e.type !== 'text', simulate: null, run_label: label, message_id: e.message_id, wa_id: e.wa_id,\n  phone_number_id: e.phone_number_id } })) : [{ json: { none: true } }];\n"
+   },
+   "executeOnce": true
+  },
+  {
+   "id": "2bb9a2b4-5554-581d-985f-39e5e1608276",
+   "name": "Anything new?",
+   "type": "n8n-nodes-base.if",
+   "typeVersion": 2.2,
+   "position": [
+    1820,
+    -180
+   ],
+   "parameters": {
+    "conditions": {
+     "options": {
+      "caseSensitive": true,
+      "leftValue": "",
+      "typeValidation": "loose",
+      "version": 2
+     },
+     "conditions": [
+      {
+       "id": "2bb9a2b4-5554-581d-985f-39e5e1608276",
+       "leftValue": "={{ !$json.none }}",
+       "rightValue": "",
+       "operator": {
+        "type": "boolean",
+        "operation": "true",
+        "singleValue": true
+       }
+      }
+     ],
+     "combinator": "and"
+    },
+    "looseTypeValidation": true,
+    "options": {}
+   }
+  },
+  {
+   "id": "2e1fdf6b-0ff9-5ad6-b062-c78bd64d4777",
+   "name": "Nothing new",
+   "type": "n8n-nodes-base.respondToWebhook",
+   "typeVersion": 1.4,
+   "position": [
+    2080,
+    0
+   ],
+   "parameters": {
+    "respondWith": "json",
+    "responseBody": "={{ JSON.stringify({ ok: true }) }}",
+    "options": {
+     "responseCode": 200
+    }
+   }
+  },
+  {
+   "id": "1a6fd1d5-869b-533d-a706-fcba7fe27c68",
+   "name": "Seen rows",
+   "type": "n8n-nodes-base.code",
+   "typeVersion": 2,
+   "position": [
+    2080,
+    -180
+   ],
+   "parameters": {
+    "jsCode": "return $input.all().map((i) => ({ json: { message_id: i.json.message_id, at: new Date().toISOString() } }));\n"
+   }
+  },
+  {
+   "id": "35ff9658-0b5c-5d1b-89d0-1ad44b597b71",
+   "name": "Mark seen",
+   "type": "n8n-nodes-base.dataTable",
+   "typeVersion": 1.1,
+   "position": [
+    2340,
+    -180
+   ],
+   "parameters": {
+    "dataTableId": {
+     "__rl": true,
+     "mode": "name",
+     "value": "q123_seen"
+    },
+    "columns": {
+     "mappingMode": "autoMapInputData",
+     "value": {},
+     "matchingColumns": [],
+     "schema": []
+    },
+    "options": {}
+   },
+   "onError": "continueRegularOutput"
+  },
+  {
+   "id": "4455c9c9-4982-58c2-9afb-75649960bb8f",
+   "name": "Accept",
+   "type": "n8n-nodes-base.respondToWebhook",
+   "typeVersion": 1.4,
+   "position": [
+    2600,
+    -180
+   ],
+   "parameters": {
+    "respondWith": "json",
+    "responseBody": "={{ JSON.stringify({ ok: true }) }}",
+    "options": {
+     "responseCode": 200
+    }
+   }
+  },
+  {
+   "id": "86bc89f0-6623-512a-a6a0-1642d5074ed8",
+   "name": "Core input",
+   "type": "n8n-nodes-base.code",
+   "typeVersion": 2,
+   "position": [
+    2860,
+    -180
+   ],
+   "parameters": {
+    "jsCode": "return $('New messages').all();\n"
+   },
+   "executeOnce": false
+  },
+  {
+   "id": "9a6c8191-6a38-5c69-bdb5-aa1384403c00",
+   "name": "Answer",
+   "type": "n8n-nodes-base.executeWorkflow",
+   "typeVersion": 1.2,
+   "position": [
+    3120,
+    -180
+   ],
+   "parameters": {
+    "source": "database",
+    "workflowId": {
+     "__rl": true,
+     "mode": "id",
+     "value": "__WF:core__"
+    },
+    "mode": "each",
+    "options": {
+     "waitForSubWorkflow": true
+    }
+   }
+  },
+  {
+   "id": "c049373e-c881-5c40-bb28-0a68aa1e31d2",
+   "name": "Send bodies",
+   "type": "n8n-nodes-base.code",
+   "typeVersion": 2,
+   "position": [
+    3380,
+    -180
+   ],
+   "parameters": {
+    "jsCode": "return $input.all().filter((i) => i.json.reply).map((i) => ({ json: {\n  url: `__WA_API_BASE__/v21.0/${i.json.phone_number_id}/messages`,\n  body: { messaging_product: 'whatsapp', to: i.json.wa_id, type: 'text', text: { body: i.json.reply.slice(0, 4096) } }, timeout_ms: 20000 } }));\n"
+   }
+  },
+  {
+   "id": "8a2c6584-196a-5494-a00b-dba6b8fcfa0c",
+   "name": "Send WhatsApp",
+   "type": "n8n-nodes-base.httpRequest",
+   "typeVersion": 4.2,
+   "position": [
+    3640,
+    -180
+   ],
+   "parameters": {
+    "method": "POST",
+    "url": "={{ $json.url }}",
+    "sendBody": true,
+    "specifyBody": "json",
+    "jsonBody": "={{ JSON.stringify($json.body) }}",
+    "options": {
+     "timeout": "={{ $json.timeout_ms || 20000 }}",
+     "response": {
+      "response": {
+       "fullResponse": true,
+       "neverError": true,
+       "responseFormat": "json"
+      }
+     }
+    },
+    "authentication": "genericCredentialType",
+    "genericAuthType": "httpHeaderAuth"
+   },
+   "credentials": {
+    "httpHeaderAuth": {
+     "id": "__CRED:waToken__",
+     "name": "WhatsApp n8n-support-bot (test)"
+    }
+   },
+   "onError": "continueRegularOutput"
+  }
+ ],
+ "connections": {
+  "WhatsApp handshake": {
+   "main": [
+    [
+     {
+      "node": "Check verify token",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Check verify token": {
+   "main": [
+    [
+     {
+      "node": "Answer handshake",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "WhatsApp message": {
+   "main": [
+    [
+     {
+      "node": "Sign raw body",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Sign raw body": {
+   "main": [
+    [
+     {
+      "node": "Verify signature",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Verify signature": {
+   "main": [
+    [
+     {
+      "node": "Signed?",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Signed?": {
+   "main": [
+    [
+     {
+      "node": "Seen ids",
+      "type": "main",
+      "index": 0
+     }
+    ],
+    [
+     {
+      "node": "Refuse",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Seen ids": {
+   "main": [
+    [
+     {
+      "node": "Run label",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Run label": {
+   "main": [
+    [
+     {
+      "node": "New messages",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "New messages": {
+   "main": [
+    [
+     {
+      "node": "Anything new?",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Anything new?": {
+   "main": [
+    [
+     {
+      "node": "Seen rows",
+      "type": "main",
+      "index": 0
+     }
+    ],
+    [
+     {
+      "node": "Nothing new",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Seen rows": {
+   "main": [
+    [
+     {
+      "node": "Mark seen",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Mark seen": {
+   "main": [
+    [
+     {
+      "node": "Accept",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Accept": {
+   "main": [
+    [
+     {
+      "node": "Core input",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Core input": {
+   "main": [
+    [
+     {
+      "node": "Answer",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Answer": {
+   "main": [
+    [
+     {
+      "node": "Send bodies",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Send bodies": {
+   "main": [
+    [
+     {
+      "node": "Send WhatsApp",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  }
+ },
+ "settings": {
+  "executionOrder": "v1"
+ }
+}

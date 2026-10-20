@@ -1,0 +1,246 @@
+{
+ "name": "Q123 Test: reset",
+ "nodes": [
+  {
+   "id": "63893325-5c2a-5a56-8666-174fe4c5291b",
+   "name": "Reset request",
+   "type": "n8n-nodes-base.webhook",
+   "typeVersion": 2.1,
+   "position": [
+    0,
+    0
+   ],
+   "parameters": {
+    "httpMethod": "POST",
+    "path": "q123-reset",
+    "responseMode": "responseNode",
+    "options": {},
+    "authentication": "headerAuth"
+   },
+   "credentials": {
+    "httpHeaderAuth": {
+     "id": "__CRED:webhookKey__",
+     "name": "Webhook n8n-support-bot"
+    }
+   },
+   "webhookId": "89b2b71b-8048-56e7-a19b-6994f6e3f891"
+  },
+  {
+   "id": "d198b442-07e7-57c0-b8c4-19bdf51cc1e2",
+   "name": "Clear q123_messages",
+   "type": "n8n-nodes-base.dataTable",
+   "typeVersion": 1.1,
+   "position": [
+    260,
+    0
+   ],
+   "parameters": {
+    "resource": "table",
+    "operation": "clear",
+    "dataTableId": {
+     "__rl": true,
+     "mode": "name",
+     "value": "q123_messages"
+    }
+   },
+   "executeOnce": true
+  },
+  {
+   "id": "4a05deb7-9d4f-5f0b-bd0e-1db3e543552a",
+   "name": "Clear q123_log",
+   "type": "n8n-nodes-base.dataTable",
+   "typeVersion": 1.1,
+   "position": [
+    520,
+    0
+   ],
+   "parameters": {
+    "resource": "table",
+    "operation": "clear",
+    "dataTableId": {
+     "__rl": true,
+     "mode": "name",
+     "value": "q123_log"
+    }
+   },
+   "executeOnce": true
+  },
+  {
+   "id": "2e323eea-0966-5ee3-828f-5a2ad3a7c900",
+   "name": "Clear q123_agent",
+   "type": "n8n-nodes-base.dataTable",
+   "typeVersion": 1.1,
+   "position": [
+    780,
+    0
+   ],
+   "parameters": {
+    "resource": "table",
+    "operation": "clear",
+    "dataTableId": {
+     "__rl": true,
+     "mode": "name",
+     "value": "q123_agent"
+    }
+   },
+   "executeOnce": true
+  },
+  {
+   "id": "e3a0343f-fc10-56de-acf3-adef2ab3dd6b",
+   "name": "Clear q123_seen",
+   "type": "n8n-nodes-base.dataTable",
+   "typeVersion": 1.1,
+   "position": [
+    1040,
+    0
+   ],
+   "parameters": {
+    "resource": "table",
+    "operation": "clear",
+    "dataTableId": {
+     "__rl": true,
+     "mode": "name",
+     "value": "q123_seen"
+    }
+   },
+   "executeOnce": true
+  },
+  {
+   "id": "cffdbd29-eacc-5a41-b569-6cebe0879a19",
+   "name": "Label row",
+   "type": "n8n-nodes-base.code",
+   "typeVersion": 2,
+   "position": [
+    1300,
+    0
+   ],
+   "parameters": {
+    "jsCode": "return [{ json: { run_label: String(($('Reset request').first().json.body || {}).run_label || 'demo'), at: new Date().toISOString() } }];\n"
+   }
+  },
+  {
+   "id": "5ee2f799-79e9-5ae4-a70e-97997b66514b",
+   "name": "Write label",
+   "type": "n8n-nodes-base.dataTable",
+   "typeVersion": 1.1,
+   "position": [
+    1560,
+    0
+   ],
+   "parameters": {
+    "dataTableId": {
+     "__rl": true,
+     "mode": "name",
+     "value": "q123_settings"
+    },
+    "columns": {
+     "mappingMode": "autoMapInputData",
+     "value": {},
+     "matchingColumns": [],
+     "schema": []
+    },
+    "options": {}
+   },
+   "onError": "continueRegularOutput"
+  },
+  {
+   "id": "992db48d-cc11-55d7-a418-b8a1cfade603",
+   "name": "Done",
+   "type": "n8n-nodes-base.respondToWebhook",
+   "typeVersion": 1.4,
+   "position": [
+    1820,
+    0
+   ],
+   "parameters": {
+    "respondWith": "json",
+    "responseBody": "={{ JSON.stringify({ reset: true }) }}",
+    "options": {
+     "responseCode": 200
+    }
+   }
+  }
+ ],
+ "connections": {
+  "Reset request": {
+   "main": [
+    [
+     {
+      "node": "Clear q123_messages",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Clear q123_messages": {
+   "main": [
+    [
+     {
+      "node": "Clear q123_log",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Clear q123_log": {
+   "main": [
+    [
+     {
+      "node": "Clear q123_agent",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Clear q123_agent": {
+   "main": [
+    [
+     {
+      "node": "Clear q123_seen",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Clear q123_seen": {
+   "main": [
+    [
+     {
+      "node": "Label row",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Label row": {
+   "main": [
+    [
+     {
+      "node": "Write label",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Write label": {
+   "main": [
+    [
+     {
+      "node": "Done",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  }
+ },
+ "settings": {
+  "executionOrder": "v1"
+ }
+}

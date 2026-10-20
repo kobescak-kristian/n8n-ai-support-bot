@@ -1,0 +1,535 @@
+{
+ "name": "Q123 Agent: reply form",
+ "nodes": [
+  {
+   "id": "f7ed2da2-af99-5d75-8605-a3127560a485",
+   "name": "Agent page",
+   "type": "n8n-nodes-base.webhook",
+   "typeVersion": 2.1,
+   "position": [
+    0,
+    -360
+   ],
+   "parameters": {
+    "httpMethod": "GET",
+    "path": "q123-agent",
+    "responseMode": "responseNode",
+    "options": {},
+    "authentication": "basicAuth"
+   },
+   "credentials": {
+    "httpBasicAuth": {
+     "id": "__CRED:formLogin__",
+     "name": "Reply form n8n-support-bot"
+    }
+   },
+   "webhookId": "a574fc90-f2b7-50ec-bb61-3b230b53361e"
+  },
+  {
+   "id": "54ed142f-2c13-558e-a705-96edaa43b541",
+   "name": "Conversation messages",
+   "type": "n8n-nodes-base.dataTable",
+   "typeVersion": 1.1,
+   "position": [
+    260,
+    -360
+   ],
+   "parameters": {
+    "operation": "get",
+    "dataTableId": {
+     "__rl": true,
+     "mode": "name",
+     "value": "q123_messages"
+    },
+    "returnAll": true,
+    "matchType": "allConditions",
+    "filters": {
+     "conditions": [
+      {
+       "keyName": "conversation_id",
+       "condition": "eq",
+       "keyValue": "={{ String(($('Agent page').first().json.query || {}).c || 'none') }}"
+      }
+     ]
+    }
+   },
+   "alwaysOutputData": true,
+   "executeOnce": true
+  },
+  {
+   "id": "803bfbb7-fd0f-5d55-b7ae-53b62552a9f3",
+   "name": "Page",
+   "type": "n8n-nodes-base.code",
+   "typeVersion": 2,
+   "position": [
+    520,
+    -360
+   ],
+   "parameters": {
+    "jsCode": "const c = String(($json.query || {}).c || '');\nconst esc = (t) => String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\"/g, '&quot;');\nconst msgs = $('Conversation messages').all().map((i) => i.json).filter((j) => j.conversation_id === c)\n  .sort((a, b) => String(a.at).localeCompare(String(b.at)));\nconst html = `<!doctype html><html><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width\">\n<title>Reply to customer</title><style>body{font:16px system-ui;max-width:640px;margin:24px auto;padding:0 16px}\n.m{padding:8px 12px;margin:6px 0;border-radius:8px;background:#f1f1f1}.bot{background:#e6f0ff}textarea{width:100%;min-height:120px}</style></head>\n<body><h1>Conversation ${esc(c)}</h1>${msgs.map((m) => `<div class=\"m ${m.role}\"><b>${m.role}</b>: ${esc(m.text)}</div>`).join('')}\n<form method=\"post\" action=\"/webhook/q123-agent-submit\"><input type=\"hidden\" name=\"conversation_id\" value=\"${esc(c)}\">\n<textarea name=\"text\" placeholder=\"Your reply to the customer\"></textarea>\n<p><button name=\"action\" value=\"reply\">Send reply</button> <button name=\"action\" value=\"close\">Close: give back to the bot</button></p></form></body></html>`;\nreturn [{ json: { html } }];\n"
+   },
+   "executeOnce": true
+  },
+  {
+   "id": "f16f9559-627f-5db9-a0eb-ae15089b269f",
+   "name": "Show page",
+   "type": "n8n-nodes-base.respondToWebhook",
+   "typeVersion": 1.4,
+   "position": [
+    780,
+    -360
+   ],
+   "parameters": {
+    "respondWith": "text",
+    "responseBody": "={{ $json.html }}",
+    "options": {
+     "responseCode": 200,
+     "responseHeaders": {
+      "entries": [
+       {
+        "name": "Content-Type",
+        "value": "text/html; charset=utf-8"
+       }
+      ]
+     }
+    }
+   }
+  },
+  {
+   "id": "9d650b4d-f27c-5e5a-8a28-68f25f154221",
+   "name": "Agent submit",
+   "type": "n8n-nodes-base.webhook",
+   "typeVersion": 2.1,
+   "position": [
+    0,
+    0
+   ],
+   "parameters": {
+    "httpMethod": "POST",
+    "path": "q123-agent-submit",
+    "responseMode": "responseNode",
+    "options": {},
+    "authentication": "basicAuth"
+   },
+   "credentials": {
+    "httpBasicAuth": {
+     "id": "__CRED:formLogin__",
+     "name": "Reply form n8n-support-bot"
+    }
+   },
+   "webhookId": "49883ffb-ecff-5e88-835e-a476672e1e1e"
+  },
+  {
+   "id": "76b9cf48-0fef-5f27-a482-224b4b92e010",
+   "name": "Conversation log",
+   "type": "n8n-nodes-base.dataTable",
+   "typeVersion": 1.1,
+   "position": [
+    260,
+    0
+   ],
+   "parameters": {
+    "operation": "get",
+    "dataTableId": {
+     "__rl": true,
+     "mode": "name",
+     "value": "q123_log"
+    },
+    "returnAll": true,
+    "matchType": "allConditions",
+    "filters": {
+     "conditions": [
+      {
+       "keyName": "conversation_id",
+       "condition": "eq",
+       "keyValue": "={{ String(($('Agent submit').first().json.body || {}).conversation_id || 'none') }}"
+      }
+     ]
+    }
+   },
+   "alwaysOutputData": true,
+   "executeOnce": true
+  },
+  {
+   "id": "0641a197-5d78-5b36-8757-e658d8a5ee15",
+   "name": "Run label",
+   "type": "n8n-nodes-base.dataTable",
+   "typeVersion": 1.1,
+   "position": [
+    520,
+    0
+   ],
+   "parameters": {
+    "operation": "get",
+    "dataTableId": {
+     "__rl": true,
+     "mode": "name",
+     "value": "q123_settings"
+    },
+    "returnAll": true
+   },
+   "alwaysOutputData": true,
+   "executeOnce": true
+  },
+  {
+   "id": "b1fca505-b93f-574a-b31f-1b6aa86a466f",
+   "name": "Decide agent action",
+   "type": "n8n-nodes-base.code",
+   "typeVersion": 2,
+   "position": [
+    780,
+    0
+   ],
+   "parameters": {
+    "jsCode": "const b = $('Agent submit').first().json.body || {};\nconst c = String(b.conversation_id || ''), action = String(b.action || ''), text = String(b.text || '').trim();\nconst logRows = $('Conversation log').all().map((i) => i.json).filter((j) => j.conversation_id === c)\n  .sort((a, b) => String(a.ts).localeCompare(String(b.ts)));\nconst last = logRows[logRows.length - 1] || {};\nconst label = ($('Run label').all().map((i) => i.json).filter((j) => j.run_label).sort((a, b) => String(a.at).localeCompare(String(b.at))).pop() || {}).run_label || 'demo';\nconst valid = !!c && logRows.length > 0 && (action === 'close' || (action === 'reply' && !!text));\nreturn [{ json: { valid, conversation_id: c, action, text, channel: last.channel || 'webchat', wa_id: last.wa_id || '',\n  phone_number_id: last.phone_number_id || '', run_label: label,\n  url: `__WA_API_BASE__/v21.0/${last.phone_number_id || 'none'}/messages`,\n  body: { messaging_product: 'whatsapp', to: last.wa_id || '', type: 'text', text: { body: text.slice(0, 4096) } }, timeout_ms: 20000 } }];\n"
+   },
+   "executeOnce": true
+  },
+  {
+   "id": "a7c44aff-d199-5b23-a437-88ada9fead52",
+   "name": "Valid?",
+   "type": "n8n-nodes-base.if",
+   "typeVersion": 2.2,
+   "position": [
+    1040,
+    0
+   ],
+   "parameters": {
+    "conditions": {
+     "options": {
+      "caseSensitive": true,
+      "leftValue": "",
+      "typeValidation": "loose",
+      "version": 2
+     },
+     "conditions": [
+      {
+       "id": "a7c44aff-d199-5b23-a437-88ada9fead52",
+       "leftValue": "={{ $json.valid }}",
+       "rightValue": "",
+       "operator": {
+        "type": "boolean",
+        "operation": "true",
+        "singleValue": true
+       }
+      }
+     ],
+     "combinator": "and"
+    },
+    "looseTypeValidation": true,
+    "options": {}
+   }
+  },
+  {
+   "id": "1467a7e8-252d-5c53-8c3e-d4ac178a5456",
+   "name": "Refused",
+   "type": "n8n-nodes-base.respondToWebhook",
+   "typeVersion": 1.4,
+   "position": [
+    1300,
+    180
+   ],
+   "parameters": {
+    "respondWith": "text",
+    "responseBody": "<p>Nothing sent: unknown conversation or empty reply.</p>",
+    "options": {
+     "responseCode": 400,
+     "responseHeaders": {
+      "entries": [
+       {
+        "name": "Content-Type",
+        "value": "text/html; charset=utf-8"
+       }
+      ]
+     }
+    }
+   }
+  },
+  {
+   "id": "9d131b6e-485e-5ca5-88d1-35a19e77f0bc",
+   "name": "WhatsApp reply?",
+   "type": "n8n-nodes-base.if",
+   "typeVersion": 2.2,
+   "position": [
+    1300,
+    0
+   ],
+   "parameters": {
+    "conditions": {
+     "options": {
+      "caseSensitive": true,
+      "leftValue": "",
+      "typeValidation": "loose",
+      "version": 2
+     },
+     "conditions": [
+      {
+       "id": "9d131b6e-485e-5ca5-88d1-35a19e77f0bc",
+       "leftValue": "={{ $json.action === 'reply' && $json.channel === 'whatsapp' }}",
+       "rightValue": "",
+       "operator": {
+        "type": "boolean",
+        "operation": "true",
+        "singleValue": true
+       }
+      }
+     ],
+     "combinator": "and"
+    },
+    "looseTypeValidation": true,
+    "options": {}
+   }
+  },
+  {
+   "id": "2af2627f-2766-5322-a7b8-d8e4407b7527",
+   "name": "Send WhatsApp reply",
+   "type": "n8n-nodes-base.httpRequest",
+   "typeVersion": 4.2,
+   "position": [
+    1560,
+    -180
+   ],
+   "parameters": {
+    "method": "POST",
+    "url": "={{ $json.url }}",
+    "sendBody": true,
+    "specifyBody": "json",
+    "jsonBody": "={{ JSON.stringify($json.body) }}",
+    "options": {
+     "timeout": "={{ $json.timeout_ms || 20000 }}",
+     "response": {
+      "response": {
+       "fullResponse": true,
+       "neverError": true,
+       "responseFormat": "json"
+      }
+     }
+    },
+    "authentication": "genericCredentialType",
+    "genericAuthType": "httpHeaderAuth"
+   },
+   "credentials": {
+    "httpHeaderAuth": {
+     "id": "__CRED:waToken__",
+     "name": "WhatsApp n8n-support-bot (test)"
+    }
+   },
+   "onError": "continueRegularOutput"
+  },
+  {
+   "id": "2eace768-03f8-50bf-900f-1eb21f5b1224",
+   "name": "Agent row",
+   "type": "n8n-nodes-base.code",
+   "typeVersion": 2,
+   "position": [
+    1820,
+    0
+   ],
+   "parameters": {
+    "jsCode": "const d = $('Decide agent action').first().json;\nconst wa = (() => { try { return $('Send WhatsApp reply').first().json; } catch (e) { return null; } })();\nconst delivered = d.action === 'close' ? true : d.channel === 'whatsapp' ? !!(wa && wa.statusCode === 200) : true;\nreturn [{ json: { at: new Date().toISOString(), run_label: d.run_label, conversation_id: d.conversation_id, action: d.action,\n  text: d.text, channel: d.channel, delivered, wa_message_id: wa && wa.body && wa.body.messages ? wa.body.messages[0].id : '' } }];\n"
+   },
+   "executeOnce": true
+  },
+  {
+   "id": "aa127fbb-0beb-57ac-ac92-7db0a3f71d67",
+   "name": "Write agent row",
+   "type": "n8n-nodes-base.dataTable",
+   "typeVersion": 1.1,
+   "position": [
+    2080,
+    0
+   ],
+   "parameters": {
+    "dataTableId": {
+     "__rl": true,
+     "mode": "name",
+     "value": "q123_agent"
+    },
+    "columns": {
+     "mappingMode": "autoMapInputData",
+     "value": {},
+     "matchingColumns": [],
+     "schema": []
+    },
+    "options": {}
+   },
+   "onError": "continueRegularOutput"
+  },
+  {
+   "id": "6ce77bf0-db59-5989-8e31-dc018fe946ad",
+   "name": "Done",
+   "type": "n8n-nodes-base.respondToWebhook",
+   "typeVersion": 1.4,
+   "position": [
+    2340,
+    0
+   ],
+   "parameters": {
+    "respondWith": "text",
+    "responseBody": "<p>Done. You can close this page.</p>",
+    "options": {
+     "responseCode": 200,
+     "responseHeaders": {
+      "entries": [
+       {
+        "name": "Content-Type",
+        "value": "text/html; charset=utf-8"
+       }
+      ]
+     }
+    }
+   }
+  }
+ ],
+ "connections": {
+  "Agent page": {
+   "main": [
+    [
+     {
+      "node": "Conversation messages",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Conversation messages": {
+   "main": [
+    [
+     {
+      "node": "Page",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Page": {
+   "main": [
+    [
+     {
+      "node": "Show page",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Agent submit": {
+   "main": [
+    [
+     {
+      "node": "Conversation log",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Conversation log": {
+   "main": [
+    [
+     {
+      "node": "Run label",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Run label": {
+   "main": [
+    [
+     {
+      "node": "Decide agent action",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Decide agent action": {
+   "main": [
+    [
+     {
+      "node": "Valid?",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Valid?": {
+   "main": [
+    [
+     {
+      "node": "WhatsApp reply?",
+      "type": "main",
+      "index": 0
+     }
+    ],
+    [
+     {
+      "node": "Refused",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "WhatsApp reply?": {
+   "main": [
+    [
+     {
+      "node": "Send WhatsApp reply",
+      "type": "main",
+      "index": 0
+     }
+    ],
+    [
+     {
+      "node": "Agent row",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Send WhatsApp reply": {
+   "main": [
+    [
+     {
+      "node": "Agent row",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Agent row": {
+   "main": [
+    [
+     {
+      "node": "Write agent row",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Write agent row": {
+   "main": [
+    [
+     {
+      "node": "Done",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  }
+ },
+ "settings": {
+  "executionOrder": "v1"
+ }
+}

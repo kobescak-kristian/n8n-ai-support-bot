@@ -1,0 +1,118 @@
+{
+ "name": "Q123 Entry: web chat",
+ "nodes": [
+  {
+   "id": "be7d48a2-d7d4-5f39-a6ee-ea85c2265f92",
+   "name": "Web chat",
+   "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+   "typeVersion": 1.1,
+   "position": [
+    0,
+    0
+   ],
+   "parameters": {
+    "public": true,
+    "mode": "hostedChat",
+    "authentication": "basicAuth",
+    "initialMessages": "Hi! I'm the Harbour E-Bikes assistant. Ask me about rentals, repairs, delivery or returns.",
+    "options": {
+     "responseMode": "lastNode",
+     "title": "Harbour E-Bikes support (demo)"
+    }
+   },
+   "credentials": {
+    "httpBasicAuth": {
+     "id": "__CRED:formLogin__",
+     "name": "Reply form n8n-support-bot"
+    }
+   },
+   "webhookId": "6441f610-ab21-5b9b-9633-3ef4711322ac"
+  },
+  {
+   "id": "5eff3766-ba99-5b21-bddf-b29a753db6d0",
+   "name": "To core input",
+   "type": "n8n-nodes-base.code",
+   "typeVersion": 2,
+   "position": [
+    260,
+    0
+   ],
+   "parameters": {
+    "jsCode": "return [{ json: { conversation_id: 'web:' + $json.sessionId, channel: 'webchat', text: String($json.chatInput || ''),\n  simulate: null, run_label: 'demo', message_id: '' } }];\n"
+   }
+  },
+  {
+   "id": "df5c6b6d-e30b-568a-ad27-1c6e2ecb88cf",
+   "name": "Answer",
+   "type": "n8n-nodes-base.executeWorkflow",
+   "typeVersion": 1.2,
+   "position": [
+    520,
+    0
+   ],
+   "parameters": {
+    "source": "database",
+    "workflowId": {
+     "__rl": true,
+     "mode": "id",
+     "value": "__WF:core__"
+    },
+    "mode": "once",
+    "options": {
+     "waitForSubWorkflow": true
+    }
+   }
+  },
+  {
+   "id": "20f5a12a-2218-56f3-be6b-ce7f9683454a",
+   "name": "To chat",
+   "type": "n8n-nodes-base.code",
+   "typeVersion": 2,
+   "position": [
+    780,
+    0
+   ],
+   "parameters": {
+    "jsCode": "return [{ json: { output: $json.reply || 'A colleague has your conversation and will reply here.' } }];\n"
+   }
+  }
+ ],
+ "connections": {
+  "Web chat": {
+   "main": [
+    [
+     {
+      "node": "To core input",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "To core input": {
+   "main": [
+    [
+     {
+      "node": "Answer",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Answer": {
+   "main": [
+    [
+     {
+      "node": "To chat",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  }
+ },
+ "settings": {
+  "executionOrder": "v1"
+ }
+}

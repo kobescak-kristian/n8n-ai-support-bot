@@ -34,6 +34,8 @@ Starting points, not exhaustive reading lists.
 | Plan, scope, decisions | `BLUEPRINT.md` |
 | Test cases, expected results, behaviour rules | `tests/CASES.md`, `tests/make_cases.py`, `tests/cases/`, `tests/kb/` |
 | Grading and eval gate, recorded runs | `tests/grading.py`, `evals/eval_config.yaml`, `evals/RESULTS.md` |
+| Workflows (generated) | `workflows/build.py`, `workflows/bot_js.py`; `--push` loads them into local n8n through `tools/n8n_api.py` |
+| Test runs | `tests/runner.py` (with `tests/mock_whatsapp.py`); knowledge base into Supabase: `tools/index_kb.py`; Supabase setup: `supabase/setup.sql` |
 | Documentation / README / ADR work | the artifact itself; `.githooks/validate_artifacts.py` for enforced structure |
 
 ## Always-on constraints
@@ -60,3 +62,5 @@ Starting points, not exhaustive reading lists.
 - Tier 0 structure: `python .githooks/validate_artifacts.py .`
 - Test cases and self-checks: `python tests/make_cases.py`
 - Grader catches what it should: `python tests/test_grading.py`
+- Runner grading and scoring offline: `python tests/test_runner.py`
+- Workflow files regenerate: `python workflows/build.py`; in-n8n checks offline: `python tests/test_bot_js.py` (node)

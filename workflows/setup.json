@@ -1,0 +1,402 @@
+{
+ "name": "Q123 Setup: create tables",
+ "nodes": [
+  {
+   "id": "e2c7078e-0a93-5339-85d4-682653122fdc",
+   "name": "Run once",
+   "type": "n8n-nodes-base.webhook",
+   "typeVersion": 2.1,
+   "position": [
+    0,
+    0
+   ],
+   "parameters": {
+    "httpMethod": "POST",
+    "path": "q123-setup-tables",
+    "responseMode": "responseNode",
+    "options": {},
+    "authentication": "headerAuth"
+   },
+   "credentials": {
+    "httpHeaderAuth": {
+     "id": "__CRED:webhookKey__",
+     "name": "Webhook n8n-support-bot"
+    }
+   },
+   "webhookId": "4c161940-e8b1-5142-9245-5918f6da40d9"
+  },
+  {
+   "id": "79c0afd5-2ca9-5daf-a23b-1e765cc677f7",
+   "name": "Create q123_messages",
+   "type": "n8n-nodes-base.dataTable",
+   "typeVersion": 1.1,
+   "position": [
+    260,
+    0
+   ],
+   "parameters": {
+    "resource": "table",
+    "operation": "create",
+    "tableName": "q123_messages",
+    "columns": {
+     "column": [
+      {
+       "name": "conversation_id",
+       "type": "string"
+      },
+      {
+       "name": "role",
+       "type": "string"
+      },
+      {
+       "name": "text",
+       "type": "string"
+      },
+      {
+       "name": "at",
+       "type": "string"
+      },
+      {
+       "name": "run_label",
+       "type": "string"
+      }
+     ]
+    }
+   },
+   "executeOnce": true,
+   "onError": "continueRegularOutput"
+  },
+  {
+   "id": "4df6535f-1f48-5ba4-ad2a-3aefbd077bfb",
+   "name": "Create q123_log",
+   "type": "n8n-nodes-base.dataTable",
+   "typeVersion": 1.1,
+   "position": [
+    520,
+    0
+   ],
+   "parameters": {
+    "resource": "table",
+    "operation": "create",
+    "tableName": "q123_log",
+    "columns": {
+     "column": [
+      {
+       "name": "log_id",
+       "type": "string"
+      },
+      {
+       "name": "ts",
+       "type": "string"
+      },
+      {
+       "name": "run_label",
+       "type": "string"
+      },
+      {
+       "name": "channel",
+       "type": "string"
+      },
+      {
+       "name": "conversation_id",
+       "type": "string"
+      },
+      {
+       "name": "message_id",
+       "type": "string"
+      },
+      {
+       "name": "message",
+       "type": "string"
+      },
+      {
+       "name": "route",
+       "type": "string"
+      },
+      {
+       "name": "reason",
+       "type": "string"
+      },
+      {
+       "name": "reply",
+       "type": "string"
+      },
+      {
+       "name": "retrieved",
+       "type": "string"
+      },
+      {
+       "name": "cited",
+       "type": "string"
+      },
+      {
+       "name": "checks",
+       "type": "string"
+      },
+      {
+       "name": "model",
+       "type": "string"
+      },
+      {
+       "name": "tokens_in",
+       "type": "number"
+      },
+      {
+       "name": "tokens_out",
+       "type": "number"
+      },
+      {
+       "name": "cost",
+       "type": "number"
+      },
+      {
+       "name": "seconds",
+       "type": "number"
+      },
+      {
+       "name": "simulated",
+       "type": "boolean"
+      },
+      {
+       "name": "ai_called",
+       "type": "boolean"
+      },
+      {
+       "name": "alert_status",
+       "type": "string"
+      },
+      {
+       "name": "mode_after",
+       "type": "string"
+      },
+      {
+       "name": "slack_ok",
+       "type": "boolean"
+      },
+      {
+       "name": "slack_ts",
+       "type": "string"
+      },
+      {
+       "name": "slack_text",
+       "type": "string"
+      },
+      {
+       "name": "form_link",
+       "type": "string"
+      },
+      {
+       "name": "wa_id",
+       "type": "string"
+      },
+      {
+       "name": "phone_number_id",
+       "type": "string"
+      }
+     ]
+    }
+   },
+   "executeOnce": true,
+   "onError": "continueRegularOutput"
+  },
+  {
+   "id": "2e7c83d1-6a4e-5b52-96d9-0e6002be2a49",
+   "name": "Create q123_agent",
+   "type": "n8n-nodes-base.dataTable",
+   "typeVersion": 1.1,
+   "position": [
+    780,
+    0
+   ],
+   "parameters": {
+    "resource": "table",
+    "operation": "create",
+    "tableName": "q123_agent",
+    "columns": {
+     "column": [
+      {
+       "name": "at",
+       "type": "string"
+      },
+      {
+       "name": "run_label",
+       "type": "string"
+      },
+      {
+       "name": "conversation_id",
+       "type": "string"
+      },
+      {
+       "name": "action",
+       "type": "string"
+      },
+      {
+       "name": "text",
+       "type": "string"
+      },
+      {
+       "name": "channel",
+       "type": "string"
+      },
+      {
+       "name": "delivered",
+       "type": "boolean"
+      },
+      {
+       "name": "wa_message_id",
+       "type": "string"
+      }
+     ]
+    }
+   },
+   "executeOnce": true,
+   "onError": "continueRegularOutput"
+  },
+  {
+   "id": "acbeef80-d6af-56aa-af2a-be8398f7b832",
+   "name": "Create q123_seen",
+   "type": "n8n-nodes-base.dataTable",
+   "typeVersion": 1.1,
+   "position": [
+    1040,
+    0
+   ],
+   "parameters": {
+    "resource": "table",
+    "operation": "create",
+    "tableName": "q123_seen",
+    "columns": {
+     "column": [
+      {
+       "name": "message_id",
+       "type": "string"
+      },
+      {
+       "name": "at",
+       "type": "string"
+      }
+     ]
+    }
+   },
+   "executeOnce": true,
+   "onError": "continueRegularOutput"
+  },
+  {
+   "id": "f3a39a9e-2c86-54b2-8551-cb69edc12527",
+   "name": "Create q123_settings",
+   "type": "n8n-nodes-base.dataTable",
+   "typeVersion": 1.1,
+   "position": [
+    1300,
+    0
+   ],
+   "parameters": {
+    "resource": "table",
+    "operation": "create",
+    "tableName": "q123_settings",
+    "columns": {
+     "column": [
+      {
+       "name": "run_label",
+       "type": "string"
+      },
+      {
+       "name": "at",
+       "type": "string"
+      }
+     ]
+    }
+   },
+   "executeOnce": true,
+   "onError": "continueRegularOutput"
+  },
+  {
+   "id": "690a064c-e398-50f9-a7e0-bb6acf03695d",
+   "name": "Created",
+   "type": "n8n-nodes-base.respondToWebhook",
+   "typeVersion": 1.4,
+   "position": [
+    1560,
+    0
+   ],
+   "parameters": {
+    "respondWith": "json",
+    "responseBody": "={{ JSON.stringify({ done: true }) }}",
+    "options": {
+     "responseCode": 200
+    }
+   }
+  }
+ ],
+ "connections": {
+  "Run once": {
+   "main": [
+    [
+     {
+      "node": "Create q123_messages",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Create q123_messages": {
+   "main": [
+    [
+     {
+      "node": "Create q123_log",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Create q123_log": {
+   "main": [
+    [
+     {
+      "node": "Create q123_agent",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Create q123_agent": {
+   "main": [
+    [
+     {
+      "node": "Create q123_seen",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Create q123_seen": {
+   "main": [
+    [
+     {
+      "node": "Create q123_settings",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Create q123_settings": {
+   "main": [
+    [
+     {
+      "node": "Created",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  }
+ },
+ "settings": {
+  "executionOrder": "v1"
+ }
+}
