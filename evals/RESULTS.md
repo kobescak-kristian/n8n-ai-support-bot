@@ -28,3 +28,21 @@ miss analysis | newly broken cases | changed variables vs previous entry | cost.
 - Misses: R10-03: Claude's draft was correct but contained the article ID "(A06)"; the check read "06" as a number not in the cited article and blocked it (handoff, reason check_failed). Safe behaviour, but a miss. Newly broken vs visible-1: R10-03 (passed in visible-1). R3-02 and R9-03 now pass.
 - Changed vs visible-1: Claude always called (similarity shortcut removed); 8 articles retrieved instead of 5.
 - Cost: $0.455; seconds per AI reply median 3.3, 90th percentile 4.2.
+
+### visible-3 — 2026-10-20 06:09, development run (not gated)
+
+- Config: eval config v1 · workflows 1a50fcf · claude-sonnet-5-5 (effort low) + text-embedding-3-small · visible.json 97 cases (c5a9c15f...) · runner exit 0, 758 s.
+- Scores: rate 55/55; critical failures 0; critical cases 25/25; code cases 17/17; code metrics all 1.0 (log_complete 99/99, handoff_complete 30/30, dont_know_offer 7/7, citation_integrity 46/46, others as before). No check_failed handoffs.
+- Result: development run, no verdict.
+- Misses: none. Newly broken vs visible-2: none.
+- Changed vs visible-2: article IDs stripped from replies before the checks; prompt rule against article IDs.
+- Cost: $0.464; seconds per AI reply median 3.6, 90th percentile 5.3.
+
+### model check — 2026-10-20 06:23 (evals/model_check.yaml v1, not gated)
+
+- Same workflows (1a50fcf + model name only), 15 cases, one run per model, runner exit 0 each.
+- claude-haiku-5-5: rate 10/10 minus 0 miss(es) , critical failures 0, cost $0.0049 ($0.00033 per case), median 3.3 s per AI reply.
+- claude-sonnet-5-5: rate 10/10 minus 0 miss(es) , critical failures 0, cost $0.0928 ($0.00619 per case), median 3.7 s per AI reply.
+- claude-opus-5-5: rate 10/10 minus 1 miss(es) ['R10-04'], critical failures 0, cost $0.1941 ($0.01294 per case), median 4.2 s per AI reply.
+- Opus miss: R10-04 reply mentioned the archived €50 pickup fee (must_not).
+- Rule result: claude-haiku-5-5 (cheapest with 0 critical failures and at most 1 rate miss) is the model for the gated runs.

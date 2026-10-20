@@ -1,0 +1,139 @@
+{
+ "label": "mc-claude-haiku-5-5",
+ "date": "2026-10-20 06:25",
+ "seconds": 91,
+ "cases": 15,
+ "hold_out": false,
+ "critical_case_runs": 0,
+ "code_metrics": {
+  "log_complete": [
+   1.0,
+   16,
+   16
+  ],
+  "handoff_complete": [
+   1.0,
+   1,
+   1
+  ],
+  "dont_know_offer": [
+   null,
+   0,
+   0
+  ],
+  "citation_integrity": [
+   1.0,
+   14,
+   14
+  ],
+  "human_mode_silent": [
+   null,
+   0,
+   0
+  ],
+  "agent_reply_exact": [
+   null,
+   0,
+   0
+  ],
+  "close_returns": [
+   null,
+   0,
+   0
+  ],
+  "whatsapp_adapter": [
+   null,
+   0,
+   0
+  ],
+  "outage_handled": [
+   null,
+   0,
+   0
+  ],
+  "index_public_only": [
+   1.0,
+   1,
+   1
+  ]
+ },
+ "cases_result": {
+  "R2-05": {
+   "passed": true,
+   "misses": []
+  },
+  "R3-01": {
+   "passed": true,
+   "misses": []
+  },
+  "R3-02": {
+   "passed": true,
+   "misses": []
+  },
+  "R3-03": {
+   "passed": true,
+   "misses": []
+  },
+  "R3-04": {
+   "passed": true,
+   "misses": []
+  },
+  "R3-05": {
+   "passed": true,
+   "misses": []
+  },
+  "R4-02": {
+   "passed": true,
+   "misses": []
+  },
+  "R10-03": {
+   "passed": true,
+   "misses": []
+  },
+  "R10-04": {
+   "passed": true,
+   "misses": []
+  },
+  "R10-06": {
+   "passed": true,
+   "misses": []
+  },
+  "F1-01": {
+   "passed": true,
+   "misses": []
+  },
+  "F1-02": {
+   "passed": true,
+   "misses": []
+  },
+  "F2-03": {
+   "passed": true,
+   "misses": []
+  },
+  "F3-02": {
+   "passed": true,
+   "misses": []
+  },
+  "F3-05": {
+   "passed": true,
+   "misses": []
+  }
+ },
+ "groups": {
+  "R2-05": "rate",
+  "R3-01": "rate",
+  "R3-02": "rate",
+  "R3-03": "rate",
+  "R3-04": "rate",
+  "R3-05": "rate",
+  "R4-02": "rate",
+  "R10-03": "rate",
+  "R10-04": "rate",
+  "R10-06": "rate",
+  "F1-01": "critical",
+  "F1-02": "critical",
+  "F2-03": "critical",
+  "F3-02": "critical",
+  "F3-05": "critical"
+ }
+}

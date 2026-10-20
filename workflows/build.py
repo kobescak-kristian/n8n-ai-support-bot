@@ -25,7 +25,7 @@ import grading  # noqa: E402
 
 BASE = "http://localhost:5678"
 import os
-MODEL = os.environ.get("Q123_MODEL", "claude-sonnet-5-5")   # model check (evals/model_check.yaml) picks the gated model
+MODEL = os.environ.get("Q123_MODEL", "claude-haiku-5-5")   # chosen by the model check (evals/model_check.yaml, RESULTS mc-*)
 FLOOR = 0.20                  # logged only (visible-1: a floor shortcut skipped Claude and missed a complaint, R9-03)
 SLACK_CHANNEL = "#support-handoff"
 SHORT = "n8n-ai-support-bot"
