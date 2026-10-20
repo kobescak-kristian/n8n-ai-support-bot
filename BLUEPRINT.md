@@ -2,7 +2,7 @@
 
 ## 0. Header
 
-- Version: v1.2, 2026-10-19
+- Version: v1.3, 2026-10-20
 - Status: LOCKED 2026-10-19 by Kristian Kobescak (owner answers in the planning session).
 - Owner: Kristian Kobescak
 - Build type: portfolio
@@ -60,12 +60,12 @@ Index workflow: KB Markdown files -> chunks -> OpenAI embeddings -> Supabase tab
 
 **Stack proposal:**
 - **n8n:** local 2.43.7, shared with other builds. Names prefixed `Q123`, tag `q123`, data tables `q123_*`, webhooks `/webhook/q123-*`. Never restart, upgrade or reconfigure n8n; never touch other builds' workflows or credentials. Full test runs announced in `n8n-usage.md` in the shared notes folder.
-- **Claude:** new Anthropic workspace `n8n-ai-support-bot` (owner creates; 30-day key; value only in n8n and LastPass). Model check first (Haiku 5.5, Sonnet 5.5, Opus 5.5 on the 15 hardest visible cases); the cheapest that meets the rule is used for the gated runs, as in item 3.
-- **Embeddings:** OpenAI `text-embedding-3-small`, new project `n8n-ai-support-bot` with its own key (owner creates). Why: Anthropic has no embedding model of its own, and the installed n8n 2.43.7 has no Voyage node (checked in the installed package: embedding nodes are OpenAI, Cohere, Gemini, Mistral, Ollama and others). OpenAI is the most common choice in n8n templates; cost for this KB is a few cents. Alternative: Google Gemini embeddings on the owner's AI/automation Google account.
+- **Claude:** new Anthropic workspace `n8n-support-bot` (owner creates; 30-day key; value only in n8n and LastPass). Model check first (Haiku 5.5, Sonnet 5.5, Opus 5.5 on the 15 hardest visible cases); the cheapest that meets the rule is used for the gated runs, as in item 3.
+- **Embeddings:** OpenAI `text-embedding-3-small`, new project `n8n-support-bot` with its own key (owner creates). Why: Anthropic has no embedding model of its own, and the installed n8n 2.43.7 has no Voyage node (checked in the installed package: embedding nodes are OpenAI, Cohere, Gemini, Mistral, Ollama and others). OpenAI is the most common choice in n8n templates; cost for this KB is a few cents. Alternative: Google Gemini embeddings on the owner's AI/automation Google account.
 - **Vector store: Supabase (owner decision 2026-10-19)**, free account and project created by the owner, made-up data only. Table `q123_kb_chunks` (pgvector) and match function `q123_match_chunks`, both created by a committed SQL file; n8n's native Supabase Vector Store node (insert and retrieve modes, checked in the n8n docs 2026-10-19). Why: clients are more likely to know it, it runs online (no Docker on the laptop), and the Loom can show the stored articles in Supabase's dashboard. Two facts to handle: (1) new Supabase projects do not expose new tables to the Data API until an explicit Postgres grant is given (Supabase changelog 45329; the n8n node uses that API), so the SQL file includes the grants; (2) free projects pause after about 7 days without database requests (third-party guides; not found on Supabase's own billing page): wake the project before test runs and the Loom. Rejected: Qdrant in local Docker (no account, but less known to clients and needs Docker); n8n's in-memory store (lost on n8n restart).
-- **Slack:** demo workspace, new app "Support Bot" (chat:write, channels:read), new channel `#support-handoff`.
+- **Slack:** demo workspace, new app `n8n-support-bot` (chat:write, channels:read, groups:read), new channel `#support-handoff`.
 - **Test tools:** Python runner, a local stand-in for the WhatsApp API (records what would be sent) and a closed port for simulated outages. No credentials in the repo.
-- Credentials named `<Service> n8n-ai-support-bot` (owner's 2026-10-19 pattern).
+- Every key, credential, project and app named `n8n-support-bot` (owner's standard: no backlog or item number); n8n credentials `<Service> n8n-support-bot`.
 
 Non-negotiables:
 - The bot has no tools that act: it cannot refund, discount, book or change anything.
@@ -184,6 +184,7 @@ Open: none.
 
 ## 8. Version log
 
+- v1.3 2026-10-20: names aligned to the owner's standard: every key, credential, project and app `n8n-support-bot`.
 - v1.2 2026-10-19: owner decision: no fixed date (decision 8).
 - v1.1 2026-10-19: owner decisions: Critical, safeguard line, Supabase (replaces the proposed Qdrant), OpenAI embeddings, no live WhatsApp; LOCKED.
 - v1.0 2026-10-19: first version, for owner review.
