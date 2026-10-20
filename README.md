@@ -1,5 +1,7 @@
 # n8n AI Support Bot
 
+![n8n AI Support Bot: 0 critical failures, 89 of 91 normal questions right in the worst of 3 test runs](docs/cover.png)
+
 ## Problem
 Small businesses answer the same customer questions all day on WhatsApp and their website. A chatbot that guesses can state a wrong price or policy, make a promise the business cannot keep, or miss a customer who needs a person.
 
