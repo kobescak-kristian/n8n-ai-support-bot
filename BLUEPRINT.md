@@ -186,6 +186,7 @@ Open: none.
 
 ## 8. Version log
 
+- v1.9 2026-10-29: owner decision ("fresh hidden test"): a fresh hold-out 2 (IDs HN-, at least 61 cases, written and sealed by a separate session) and a new gated series on the frozen workflows a0f05b2, local n8n, plus a build red team before it; the first hold-out stays as seen cases (eval config v4).
 - v1.8 2026-10-20: owner decision after gated-seen-1..3 (PASS with caveats): next version adds one retry on the Supabase search and the embedding call, error codes in the log, and gate v3 metric code_cases_pass.
 - v1.7 2026-10-20: owner decision after the gated FAIL (gated-1..3): HO-F1-04 case corrected for the next version (eval config v2); rerun 3 gated runs after Q-117, labelled "hold-out seen".
 - v1.6 2026-10-20: owner decision: the short name keeps "ai" because the build has AI: every key, credential, project and app `n8n-ai-support-bot` (replaces v1.3's `n8n-support-bot`).

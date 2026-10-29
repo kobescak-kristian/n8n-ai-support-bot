@@ -5,7 +5,7 @@ the reply form's submit endpoint, reads the report, grades each case with
 tests/grading.py and writes one results file per run. `score` combines 3 runs
 into the gate verdict of evals/eval_config.yaml.
 
-  python tests/runner.py run --label dev-1 [--only R1-01,W-02] [--data <hold-out folder>]
+  python tests/runner.py run --label dev-1 [--only R1-01,W-02] [--data <folder> [--data <folder>]]
   python tests/runner.py score --labels gated-1 gated-2 gated-3
 
 Webhook contract the workflows implement (all on http://localhost:5678/webhook/):
@@ -61,9 +61,10 @@ def load_env():
 
 
 def load_cases(data):
+    """Visible cases plus each extra folder's cases.json (v4: tests/holdout, then the hold-out 2 folder)."""
     cases = json.loads((ROOT / "cases" / "visible.json").read_text(encoding="utf-8"))["cases"]
-    if data:
-        extra = json.loads((Path(data) / "cases.json").read_text(encoding="utf-8"))["cases"]
+    for d in data or []:
+        extra = json.loads((Path(d) / "cases.json").read_text(encoding="utf-8"))["cases"]
         clash = sorted({c["id"] for c in cases} & {c["id"] for c in extra})
         if clash:
             sys.exit(f"stop: case IDs in both sets: {clash}")
@@ -423,7 +424,7 @@ def main():
     r = sub.add_parser("run")
     r.add_argument("--label", required=True)
     r.add_argument("--only")
-    r.add_argument("--data", help="hold-out folder (extracted from the checked zip)")
+    r.add_argument("--data", action="append", help="folder with a cases.json added to the visible set; repeatable")
     s = sub.add_parser("score")
     s.add_argument("--labels", nargs="+", required=True)
     a = ap.parse_args()

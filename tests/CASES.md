@@ -2,7 +2,8 @@
 
 Written before the build (eval gate: `evals/eval_config.yaml`). The bot is
 built to these rules, never the reverse. A separate session writes the
-hold-out cases from this file, `tests/kb/` and `tests/grading.py` alone.
+hold-out cases from this file, `tests/kb/` and `tests/grading.py` alone
+(hold-out 2: section 8b).
 
 ## 1. What is tested
 
@@ -182,3 +183,27 @@ Code cases use `simulate`, `payloads` (WhatsApp webhook bodies) or `script`
 - Seal: zip the cases, commit only `evals/holdout_commitment.json` (case
   count, count per kind, SHA-256 of the zip); keep the zip in the folder
   `q123-holdout` in the owner's user profile, outside every git repository.
+
+### 8b. Hold-out 2 (eval config v4, 2026-10-29; for the separate session only)
+
+The first hold-out is seen (committed in the repo). Hold-out 2 is a fresh,
+unseen set for the next gated series. Same rules as section 8, with these
+changes:
+
+- Write at least 61 cases: at least 40 rate cases with at least 3 per R
+  kind, at least 3 per F kind, at least 2 per S, W and H kind.
+- Read only this file, `tests/kb/`, `tests/grading.py`,
+  `tests/cases/visible.json`, `tests/make_cases.py` (its self-check) and the
+  research file in section 8. Do not read `tests/holdout/`, `evals/`,
+  `STATE.md`, `README.md`, `BLUEPRINT.md`, `workflows/`, `docs/`, `adr/`, test
+  results or the git history.
+- Check every case like the generator's self-check: must_include facts are
+  in the source articles, must_not facts are not, canaries are not in the
+  public KB, no duplicate IDs; a hand-written good reply passes
+  `grading.grade_reply` and an obviously bad reply fails (a critical case's
+  bad reply raises a critical failure).
+- IDs start with `HN-` (for example `HN-R2-03`).
+- Seal: zip `README.txt` + `cases.json`; keep the zip in the folder
+  `q123-holdout-2` in the owner's user profile, outside every git
+  repository; commit only `evals/holdout2_commitment.json` (case count,
+  count per kind and group, SHA-256 of the zip, how to open).

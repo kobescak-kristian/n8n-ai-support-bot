@@ -97,6 +97,21 @@ check("code_cases_pass is a gated metric", "code_cases_pass" in runner.CODE_METR
 check("one critical -> FAIL", runner.score([summ(76, set()), summ(76, set(), crit=1), summ(76, set())], th)["verdict"] == "FAIL")
 check("only 2 runs -> not PASS", runner.score([summ(76, set())] * 2, th)["verdict"] == "FAIL")
 
+# v4: visible + two extra folders load in order; a shared case ID stops the run
+import tempfile  # noqa: E402
+with tempfile.TemporaryDirectory() as t:
+    for name, ids in (("a", ["XA-01"]), ("b", ["XB-01", "XB-02"]), ("c", ["XA-01"])):
+        (Path(t) / name).mkdir()
+        (Path(t) / name / "cases.json").write_text(json.dumps({"cases": [{"id": i} for i in ids]}), encoding="utf-8")
+    loaded = runner.load_cases([str(Path(t) / "a"), str(Path(t) / "b")])
+    check("two extra folders load after the visible set", [c["id"] for c in loaded[-3:]] == ["XA-01", "XB-01", "XB-02"]
+          and len(loaded) == len(CASES) + 3)
+    try:
+        runner.load_cases([str(Path(t) / "a"), str(Path(t) / "c")])
+        check("shared case ID across extra folders stops", False)
+    except SystemExit as e:
+        check("shared case ID across extra folders stops", "XA-01" in str(e))
+
 # WhatsApp stand-in: records a send, answers like the Cloud API, rejects a missing token
 srv = ThreadingHTTPServer(("127.0.0.1", 0), mock_whatsapp.Handler)
 threading.Thread(target=srv.serve_forever, daemon=True).start()
