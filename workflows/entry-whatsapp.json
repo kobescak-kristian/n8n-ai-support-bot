@@ -209,7 +209,7 @@
     -180
    ],
    "parameters": {
-    "jsCode": "const v = $('Verify signature').first().json;\nconst seen = new Set($('Seen ids').all().map((i) => i.json.message_id).filter(Boolean));\nconst label = ($('Run label').all().map((i) => i.json).filter((j) => j.run_label).sort((a, b) => String(a.at).localeCompare(String(b.at))).pop() || {}).run_label || 'demo';\nconst fresh = v.events.filter((e) => !seen.has(e.message_id));\nreturn fresh.length ? fresh.map((e) => ({ json: { conversation_id: 'wa:' + e.wa_id, channel: 'whatsapp', text: e.type === 'text' ? e.text : '',\n  media: e.type !== 'text', simulate: null, run_label: label, message_id: e.message_id, wa_id: e.wa_id,\n  phone_number_id: e.phone_number_id } })) : [{ json: { none: true } }];\n"
+    "jsCode": "const v = $('Verify signature').first().json;\nconst seen = new Set($('Seen ids').all().map((i) => i.json.message_id).filter(Boolean));\nconst label = ($('Run label').all().map((i) => i.json).filter((j) => j.run_label).sort((a, b) => String(a.at).localeCompare(String(b.at))).pop() || {}).run_label || 'demo';\nconst fresh = v.events.filter((e) => !seen.has(e.message_id) && !!seen.add(e.message_id));  // also a repeat inside one body\nreturn fresh.length ? fresh.map((e) => ({ json: { conversation_id: 'wa:' + e.wa_id, channel: 'whatsapp', text: e.type === 'text' ? e.text : '',\n  media: e.type !== 'text', caption: e.type === 'text' ? '' : e.text, simulate: null, run_label: label, message_id: e.message_id, wa_id: e.wa_id,\n  phone_number_id: e.phone_number_id } })) : [{ json: { none: true } }];\n"
    },
    "executeOnce": true
   },

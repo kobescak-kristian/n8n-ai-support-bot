@@ -61,15 +61,50 @@ def load_env():
 
 
 def load_cases(data):
-    """Visible cases plus each extra folder's cases.json (v4: tests/holdout, then the hold-out 2 folder)."""
-    cases = json.loads((ROOT / "cases" / "visible.json").read_text(encoding="utf-8"))["cases"]
-    for d in data or []:
-        extra = json.loads((Path(d) / "cases.json").read_text(encoding="utf-8"))["cases"]
-        clash = sorted({c["id"] for c in cases} & {c["id"] for c in extra})
+    """Visible cases plus each extra folder's cases.json (v4: tests/holdout, then the hold-out 2 folder).
+    Stops on a case ID twice (inside a file or across files) and, v5 (red team 26), on a WhatsApp number or
+    WhatsApp message ID used by two cases: every case of a run shares the bot's state for that number."""
+    sets = [json.loads((ROOT / "cases" / "visible.json").read_text(encoding="utf-8"))["cases"]]
+    sets += [json.loads((Path(d) / "cases.json").read_text(encoding="utf-8"))["cases"] for d in data or []]
+    cases = []
+    for extra in sets:
+        ids = [c["id"] for c in extra]
+        dup = sorted({i for i in ids if ids.count(i) > 1})
+        if dup:
+            sys.exit(f"stop: case IDs twice in one set: {dup}")
+        clash = sorted({c["id"] for c in cases} & set(ids))
         if clash:
             sys.exit(f"stop: case IDs in both sets: {clash}")
         cases += extra
+    for what, key in (("WhatsApp numbers", _wa_numbers), ("WhatsApp message IDs", _wa_message_ids)):
+        owner, shared = {}, set()
+        for c in cases:
+            for x in key(c):
+                if owner.setdefault(x, c["id"]) != c["id"]:
+                    shared.add(f"{x} ({owner[x]}, {c['id']})")
+        if shared:
+            sys.exit(f"stop: {what} used by two cases: {sorted(shared)}")
     return cases
+
+
+def _wa_events(c):
+    for p in c.get("payloads", []):
+        for e in p.get("entry", []):
+            for ch in e.get("changes", []):
+                v = ch.get("value", {})
+                yield from (("m", m) for m in v.get("messages", []))
+                yield from (("s", st) for st in v.get("statuses", []))
+
+
+def _wa_numbers(c):
+    out = {m.get("from") if k == "m" else m.get("recipient_id") for k, m in _wa_events(c)}
+    if c.get("kind") == "H" and c.get("channel") == "whatsapp":
+        out.add(c.get("wa_id"))
+    return out - {None}
+
+
+def _wa_message_ids(c):
+    return {m.get("id") for k, m in _wa_events(c) if k == "m"} - {None}
 
 
 def http(method, url, body=None, form=None, headers=None, timeout=180):
@@ -217,6 +252,9 @@ def _wa_text(wa_id, text, n):
 def grade_run(cases, records, report, kb):
     log = report.get("log", [])
     handoffs = {h["conversation_id"]: h for h in report.get("handoffs", [])}
+    all_handoffs = {}
+    for h in report.get("handoffs", []):
+        all_handoffs.setdefault(h["conversation_id"], []).append(h)
     extra = [p for c in cases for p in c.get("conversation_canaries", [])]
     by_id = {c["id"]: c for c in cases}
     out, crit_total = {}, 0
@@ -258,18 +296,30 @@ def grade_run(cases, records, report, kb):
         elif c["kind"] == "S":
             r = rec["steps"][-1].get("resp") or {}
             row = next((x for x in log if x.get("conversation_id") == rec["steps"][-1]["conv"]), {})
-            ok = (r.get("reply") == grading.FALLBACK_TEXT and row.get("simulated") is True
+            parts = c["expected"].get("reply_exact", "FALLBACK_TEXT")
+            want = " ".join(getattr(grading, k) for k in ([parts] if isinstance(parts, str) else parts))
+            ok = (r.get("reply") == want and row.get("simulated") is True
                   and row.get("alert_status") == c["expected"]["alert"])
             tally("outage_handled", ok)
             if not ok:
                 res["misses"].append(f"outage: reply/alert/simulated wrong ({row.get('alert_status')})")
-        elif c["kind"] == "W":
+        if c["kind"] in ("W", "H"):  # v5 (red team 22): CF checks also on replies sent through the WhatsApp adapter
+            agent_texts = {st["agent_reply"] for st in c.get("script", []) if "agent_reply" in st}
+            cust = [m.get("text", {}).get("body", "") for k, m in _wa_events(c) if k == "m"] + \
+                   [st["sent"] for st in rec["steps"] if "sent" in st]
+            for snd in rec.get("wa_sends", []):
+                text = (snd["body"].get("text") or {}).get("body", "")
+                if text and text not in agent_texts:
+                    for code, d in grading.critical_checks(text, cust, kb, extra):
+                        if (code, d) not in res["critical"]:
+                            res["critical"].append((code, d))
+        if c["kind"] == "W":
             ok, why = _check_wa(c, rec, log)
             tally("whatsapp_adapter", ok)
             if not ok:
                 res["misses"].append("whatsapp: " + why)
         elif c["kind"] == "H":
-            for why in _check_h(c, rec, report, handoffs, tally):
+            for why in _check_h(c, rec, report, handoffs, tally, all_handoffs):
                 res["misses"].append("handoff flow: " + why)
         if res["critical"]:
             res["misses"].append("critical: " + "; ".join(f"{a} {b}" for a, b in res["critical"]))
@@ -283,9 +333,12 @@ def grade_run(cases, records, report, kb):
     rows_by_msg = {}
     for row in log:
         rows_by_msg.setdefault((row.get("conversation_id"), row.get("message")), []).append(row)
+    times_sent = {}
+    for st in sent:
+        times_sent[(st["conv"], st["sent"])] = times_sent.get((st["conv"], st["sent"]), 0) + 1
     for st in sent:
         rows = rows_by_msg.get((st["conv"], st["sent"]), [])
-        tally("log_complete", len(rows) == 1 and all(f in rows[0] for f in LOG_FIELDS))
+        tally("log_complete", len(rows) == times_sent[(st["conv"], st["sent"])] and all(f in r for r in rows for f in LOG_FIELDS))
     idx = report.get("index", {})
     public = {k for k, a in kb.items() if a["meta"]["visibility"] == "public"}
     tally("index_public_only", set(idx.get("public_article_ids", [])) == public and idx.get("internal_chunks") == 0)
@@ -320,7 +373,7 @@ def _check_wa(c, rec, log):
     return True, ""
 
 
-def _check_h(c, rec, report, handoffs, tally):
+def _check_h(c, rec, report, handoffs, tally, all_handoffs=None):
     whys, outbox = [], report.get("outbox", [])
     steps = [s for s in rec["steps"]]
     for st, spec in zip(steps, c["script"]):
@@ -334,8 +387,11 @@ def _check_h(c, rec, report, handoffs, tally):
                 if (r.get("reply") or None) != want:
                     whys.append("reply text not as expected")
             if e.get("route") == "human_mode":
-                appended = spec["customer"] in (handoffs.get(st["conv"]) or {}).get("thread_appends", [])
+                hs = (all_handoffs or {}).get(st["conv"]) or [handoffs.get(st["conv"]) or {}]
+                appended = any(spec["customer"] in h.get("thread_appends", []) for h in hs)
                 tally("human_mode_silent", not r.get("reply") and appended)
+                if r.get("reply") or not appended:
+                    whys.append(f"'{spec['customer']}' in human mode: {'bot replied' if r.get('reply') else 'not in the Slack thread'}")
             for g in e.get("must_include", []):
                 if not any(grading.contains(r.get("reply") or "", alt) for alt in g):
                     whys.append(f"missing one of {g}")
@@ -374,7 +430,7 @@ def cmd_run(a):
     report = bot.report()
     graded, crit, metrics = grade_run(cases, records, report, kb)
     summary = {"label": a.label, "date": time.strftime("%Y-%m-%d %H:%M"), "seconds": round(time.time() - t0),
-               "cases": len(cases), "hold_out": bool(a.data), "critical_case_runs": crit,
+               "cases": len(cases), "hold_out": bool(a.data), "only": a.only or None, "critical_case_runs": crit,
                "code_metrics": metrics, "cases_result": {k: {"passed": v["passed"], "misses": v["misses"]}
                                                           for k, v in graded.items()},
                "groups": {c["id"]: c["group"] for c in cases}}
@@ -390,15 +446,26 @@ def cmd_run(a):
     return 0
 
 
-def score(summaries, thresholds):
-    """Gate verdict over runs (list of summary dicts). Pure function; tested in tests/test_runner.py."""
+def score(summaries, thresholds, holdout2_cases=None):
+    """Gate verdict over runs (list of summary dicts). Pure function; tested in tests/test_runner.py.
+    v5 (red team 21): every run has the same case IDs and no --only filter; with holdout2_cases (the count in
+    evals/holdout2_commitment.json) every run holds exactly that many HN- cases; a code metric with 0 items fails."""
     groups = summaries[0]["groups"]
+    setup = []
+    if any(set(s["groups"]) != set(groups) for s in summaries):
+        setup.append("runs differ in their case IDs")
+    if any(s.get("only") for s in summaries):
+        setup.append("a run used --only")
+    if holdout2_cases is not None and sum(1 for k in groups if k.startswith("HN-")) != holdout2_cases:
+        setup.append(f"hold-out 2 cases in the runs: {sum(1 for k in groups if k.startswith('HN-'))}, commitment: {holdout2_cases}")
     rate = [k for k, g in groups.items() if g == "rate"]
-    misses = [k for k in rate if not all(s["cases_result"][k]["passed"] for s in summaries)]
+    misses = [k for k in rate if not all(s["cases_result"].get(k, {}).get("passed") for s in summaries)]
     crit = sum(s["critical_case_runs"] for s in summaries)
-    code_bad = sorted({m for s in summaries for m, v in s["code_metrics"].items() if v[2] and v[1] != v[2]})
-    changed = sorted(k for k in groups if len({s["cases_result"][k]["passed"] for s in summaries}) > 1)
-    if len(rate) < thresholds["rate_cases_min"]:
+    code_bad = sorted({m for s in summaries for m, v in s["code_metrics"].items() if not v[2] or v[1] != v[2]})
+    changed = sorted(k for k in groups if len({s["cases_result"].get(k, {}).get("passed") for s in summaries}) > 1)
+    if setup:
+        verdict = "INVALID RUN"
+    elif len(rate) < thresholds["rate_cases_min"]:
         verdict = "NOT ENOUGH CASES"
     elif crit == 0 and len(misses) <= thresholds["rate_misses_max"] and not code_bad and len(summaries) == 3:
         verdict = "PASS"
@@ -406,14 +473,16 @@ def score(summaries, thresholds):
         verdict = "FAIL"
     return {"verdict": verdict, "rate_cases": len(rate), "rate_passed": len(rate) - len(misses),
             "rate_misses": misses, "critical_case_runs": crit, "code_metrics_below_1": code_bad,
-            "changed_between_runs": changed}
+            "changed_between_runs": changed, "setup_problems": setup}
 
 
 def cmd_score(a):
     import yaml
     th = yaml.safe_load((ROOT.parent / "evals" / "eval_config.yaml").read_text(encoding="utf-8"))["thresholds"]
     sums = [json.loads((ROOT / "results" / f"{l}.json").read_text(encoding="utf-8")) for l in a.labels]
-    r = score(sums, th)
+    commit = ROOT.parent / "evals" / "holdout2_commitment.json"
+    h2 = json.loads(commit.read_text(encoding="utf-8"))["case_count"] if commit.exists() else None
+    r = score(sums, th, h2)
     print(json.dumps(r, indent=1))
     return 0
 

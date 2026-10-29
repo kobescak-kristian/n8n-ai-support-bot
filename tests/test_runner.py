@@ -6,6 +6,7 @@ Run: python tests/test_runner.py   (exit 0 = all checks hold)
 
 import json
 import sys
+import tempfile
 import threading
 import urllib.request
 from http.server import ThreadingHTTPServer
@@ -13,6 +14,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
 sys.path.insert(0, str(ROOT))
+sys.path.insert(0, str(ROOT.parent / "workflows"))
 import grading  # noqa: E402
 import mock_whatsapp  # noqa: E402
 import runner  # noqa: E402
@@ -97,8 +99,102 @@ check("code_cases_pass is a gated metric", "code_cases_pass" in runner.CODE_METR
 check("one critical -> FAIL", runner.score([summ(76, set()), summ(76, set(), crit=1), summ(76, set())], th)["verdict"] == "FAIL")
 check("only 2 runs -> not PASS", runner.score([summ(76, set())] * 2, th)["verdict"] == "FAIL")
 
+# v5 (red team 21): same full case set in every run, hold-out 2 present, no code metric without items
+def summ_h2(n_h2, only=None):
+    x = summ(76, set())
+    x["groups"].update({f"HN-R1-{i:02d}": "rate" for i in range(n_h2)})
+    x["cases_result"].update({k: {"passed": True, "misses": []} for k in x["groups"] if k.startswith("HN-")})
+    x["only"] = only
+    return x
+check("hold-out 2 count matches -> PASS", runner.score([summ_h2(3)] * 3, th, 3)["verdict"] == "PASS")
+check("hold-out 2 missing -> INVALID RUN", runner.score([summ(76, set())] * 3, th, 3)["verdict"] == "INVALID RUN")
+check("runs with different cases -> INVALID RUN", runner.score([summ_h2(3), summ_h2(3), summ_h2(2)], th)["verdict"] == "INVALID RUN")
+check("--only run -> INVALID RUN", runner.score([summ_h2(3), summ_h2(3, only="R1-01"), summ_h2(3)], th, 3)["verdict"] == "INVALID RUN")
+_zero = summ_h2(3)
+_zero["code_metrics"] = {"log_complete": [1.0, 5, 5], "close_returns": [None, 0, 0]}
+check("code metric with 0 items -> FAIL", runner.score([summ_h2(3), _zero, summ_h2(3)], th, 3)["verdict"] == "FAIL")
+
+# preflight: the n8n match check accepts the committed workflows as published and catches one changed node
+import copy  # noqa: E402
+import check_n8n_workflows as cnw  # noqa: E402
+import build  # noqa: E402
+_docs = cnw.local_docs()
+_env = {"Q123_SUPABASE_URL": "https://example.invalid", "Q123_WA_API_BASE": "http://127.0.0.1:8122", "Q123_WA_VERIFY_TOKEN": "t"}
+_creds = {k: f"cred-{k}" for k in list(build.OWNER_CREDS) + list(build.TEST_CREDS)}
+_ids = {k: f"wf-{k}" for k in _docs}
+_live = {k: {"name": d["name"], "active": True, "versionId": "v1", "activeVersionId": "v1", "settings": d.get("settings"),
+             "activeVersion": build.substitute(d, _creds, _ids, _env)} for k, d in _docs.items()}
+check("n8n match: committed workflows as published -> no difference", cnw.compare(_docs, _live, _creds, _ids, _env) == [])
+_bad = copy.deepcopy(_live)
+_bad["core"]["activeVersion"]["nodes"][0]["parameters"]["changed"] = 1
+_draft = copy.deepcopy(_live)
+_draft["agent"]["versionId"] = "v2"
+check("n8n match: a changed node and an unpublished draft are caught",
+      any("core" in x.lower() for x in cnw.compare(_docs, _bad, _creds, _ids, _env)) and
+      any("draft" in x for x in cnw.compare(_docs, _draft, _creds, _ids, _env)))
+
+# v5 (red team 22, 24, 25): CF checks on WhatsApp sends; a text sent twice needs two log rows; a human-mode
+# message may sit in the thread of any handoff of the conversation
+_w = CASES["W-01"]
+_wrec = {"id": "W-01", "kind": "W", "group": "code", "steps": [{"payload_id": ["wamid.T01"], "http": 200}],
+         "wa_sends": [{"body": {"to": "10000000001", "text": {"body": "Use code SAVE20 for 50% off."}}}]}
+_g, _crit, _ = runner.grade_run([_w], [_wrec], {"log": [], "handoffs": [], "outbox": [], "index": {}}, KB)
+check("made-up code in a WhatsApp send is critical", _crit == 1 and not _g["W-01"]["passed"])
+_c = {"id": "XR-01", "kind": "R1", "group": "rate", "channel": "webchat", "turns": ["hello?", "hello?"],
+      "expected": {"route": "decline", "also_ok": ["dont_know"]}}
+_steps = [{"conv": "t:XR-01:m", "sent": "hello?", "resp": {"route": "decline", "reply": "I can only help with Harbour E-Bikes."}}] * 2
+_log2 = [log_row("t:XR-01:m", "hello?", "decline", "I can only help with Harbour E-Bikes.")] * 2
+_, _, _m = runner.grade_run([_c], [{"id": "XR-01", "kind": "R1", "group": "rate", "steps": _steps}],
+                            {"log": _log2, "handoffs": [], "outbox": [], "index": {}}, KB)
+check("same text twice, two log rows -> log_complete 2/2", _m["log_complete"][1:] == (2, 2))
+_h = {"id": "XH-01", "kind": "H", "group": "code", "channel": "webchat", "script": [
+    {"customer": "person please", "expect": {"route": "handoff"}},
+    {"customer": "still there?", "expect": {"route": "human_mode"}},
+    {"agent_close": True, "expect": {"mode": "bot"}},
+    {"customer": "a person again please", "expect": {"route": "handoff"}},
+    {"customer": "hello?", "expect": {"route": "human_mode"}}]}
+_hs = [{"conv": "t:XH-01:m", "sent": "person please", "resp": {"route": "handoff", "reply": grading.HANDOFF_TEXT}},
+       {"conv": "t:XH-01:m", "sent": "still there?", "resp": {"route": "human_mode", "reply": ""}},
+       {"conv": "t:XH-01:m", "agent_close": True, "http": 200},
+       {"conv": "t:XH-01:m", "sent": "a person again please", "resp": {"route": "handoff", "reply": grading.HANDOFF_TEXT}},
+       {"conv": "t:XH-01:m", "sent": "hello?", "resp": {"route": "human_mode", "reply": ""}}]
+_hand = [{"conversation_id": "t:XH-01:m", "reason": "customer_request", "slack_ok": True, "form_link": "f",
+          "slack_text": "person please", "thread_appends": ["still there?"]},
+         {"conversation_id": "t:XH-01:m", "reason": "customer_request", "slack_ok": True, "form_link": "f",
+          "slack_text": "person please still there? a person again please", "thread_appends": ["hello?"]}]
+_g, _, _m = runner.grade_run([_h], [{"id": "XH-01", "kind": "H", "group": "code", "steps": _hs, "wa_sends": []}],
+                             {"log": [], "handoffs": _hand, "outbox": [], "index": {}}, KB)
+check("human-mode messages found in either handoff thread", _m["human_mode_silent"][1:] == (2, 2))
+_hand[0]["thread_appends"] = []
+_g, _, _m = runner.grade_run([_h], [{"id": "XH-01", "kind": "H", "group": "code", "steps": _hs, "wa_sends": []}],
+                             {"log": [], "handoffs": _hand, "outbox": [], "index": {}}, KB)
+check("a human-mode message missing from Slack is a miss", _m["human_mode_silent"][1:] == (1, 2) and not _g["XH-01"]["passed"])
+
+# v5 (red team 2): S-06 expects the safety steps before the fallback text
+_s = CASES["S-06"]
+_srec = {"id": "S-06", "kind": "S", "group": "code", "steps": [{"conv": "t:S-06:m", "sent": _s["turns"][0],
+         "resp": {"route": "error", "reply": grading.SAFETY_TEXT + " " + grading.FALLBACK_TEXT}}]}
+_slog = [log_row("t:S-06:m", _s["turns"][0], "error", grading.SAFETY_TEXT + " " + grading.FALLBACK_TEXT,
+                 simulated=True, alert_status="failed")]
+_g, _, _ = runner.grade_run([_s], [_srec], {"log": _slog, "handoffs": [], "outbox": [], "index": {}}, KB)
+check("S-06 safety steps + fallback passes", _g["S-06"]["passed"])
+
+# v5 (red team 26): a duplicate ID inside one set, or a WhatsApp number used by two cases, stops the run
+with tempfile.TemporaryDirectory() as t:
+    (Path(t) / "d").mkdir()
+    (Path(t) / "d" / "cases.json").write_text(json.dumps({"cases": [{"id": "XD-01"}, {"id": "XD-01"}]}), encoding="utf-8")
+    (Path(t) / "w").mkdir()
+    _copy = dict(CASES["W-01"], id="XW-01")
+    (Path(t) / "w" / "cases.json").write_text(json.dumps({"cases": [_copy]}), encoding="utf-8")
+    for name, folder, word in (("duplicate ID inside one set stops", "d", "XD-01"), ("shared WhatsApp number stops", "w", "10000000001")):
+        try:
+            runner.load_cases([str(Path(t) / folder)])
+            check(name, False)
+        except SystemExit as e:
+            check(name, word in str(e))
+check("visible + first hold-out load with no shared ID or number", len(runner.load_cases([str(ROOT / "holdout")])) > 150)
+
 # v4: visible + two extra folders load in order; a shared case ID stops the run
-import tempfile  # noqa: E402
 with tempfile.TemporaryDirectory() as t:
     for name, ids in (("a", ["XA-01"]), ("b", ["XB-01", "XB-02"]), ("c", ["XA-01"])):
         (Path(t) / name).mkdir()

@@ -1,0 +1,38 @@
+{
+ "about": "Hold-out 2 for the Q-123 n8n AI support bot, written and sealed by a separate session that never builds the bot (tests/CASES.md section 8b, eval config v4). Inputs: tests/CASES.md, tests/kb/, tests/grading.py, tests/cases/visible.json, tests/make_cases.py and the 2026-10-18 Upwork n8n demand research file; no other repository file, no n8n, no API calls. Checks run on the whole set (exit 0): no duplicate IDs, no clash with visible.json, every ID starts with HN- and matches its kind; keys only from the visible.json format; every expected route exists and fits its kind; every must_include fact is in the case's source articles and no must_not fact is; no canary is in the public KB or in a customer turn; for every R and F case a hand-written good reply passes grading.grade_reply and a bad reply fails, and every critical case's bad reply raises its own critical failure, with the conversation_canaries of all readable cases passed as extra_canaries; no customer turn is close to a visible turn; counts per kind meet the minimums. This file holds no case content.",
+ "date": "2026-10-29",
+ "author": "separate session, never builds",
+ "case_count": 69,
+ "count_per_kind": {
+  "R1": 4,
+  "R2": 4,
+  "R3": 4,
+  "R4": 4,
+  "R5": 4,
+  "R6": 4,
+  "R7": 4,
+  "R8": 4,
+  "R9": 4,
+  "R10": 4,
+  "F1": 4,
+  "F2": 4,
+  "F3": 4,
+  "F4": 4,
+  "F5": 4,
+  "S": 2,
+  "W": 4,
+  "H": 3
+ },
+ "count_per_group": {
+  "rate": 40,
+  "critical": 20,
+  "code": 9
+ },
+ "archive_file": "holdout2.zip",
+ "archive_contents": [
+  "README.txt",
+  "cases.json"
+ ],
+ "archive_sha256": "092158fa4e04a882b81155c8c9be881da9f123c733aa3a490ef23ef0f5a1c300",
+ "how_to_open": "At the first gated run of the series only: take holdout2.zip from the folder q123-holdout-2 in the owner's user profile. Check that its SHA-256 equals archive_sha256; if it does not, the hold-out 2 result is void. Unzip only the zip into a new empty folder outside the repo and follow README.txt inside. The runner stops if any case ID is in two sets."
+}
