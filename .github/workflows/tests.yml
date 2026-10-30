@@ -1,0 +1,51 @@
+# Keyless checks on Linux, macOS and Windows: the repository structure, the
+# grader on its reference samples, the test runner's grading and scoring, the
+# in-n8n JavaScript (run in Node), the gate result re-derived from the
+# committed result files, and a rebuild of the test cases and workflows that
+# must give the committed files. No n8n, no network, no keys. The gated runs
+# need n8n plus Anthropic, OpenAI, Supabase and Slack accounts and are not
+# run here.
+# Actions are pinned to full commit SHAs (the tag in the comment).
+name: tests
+on:
+  push:
+  pull_request:
+permissions:
+  contents: read
+defaults:
+  run:
+    shell: bash
+jobs:
+  tests:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.12"
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: "24"
+      - name: Install the scorer's one dependency
+        run: python -m pip install pyyaml==6.0.3
+      - name: Repository structure
+        run: python .githooks/validate_artifacts.py .
+      - name: Grader catches what it should
+        run: python tests/test_grading.py
+      - name: Test runner grading and scoring
+        run: python tests/test_runner.py
+      - name: The in-n8n JavaScript checks
+        run: python tests/test_bot_js.py
+      - name: Gate result re-derived from the committed result files
+        run: |
+          python tests/runner.py score --labels gated-h2-1 gated-h2-2 gated-h2-3 > score.json
+          python -c "import json, sys; v = json.load(open('score.json'))['verdict']; print('verdict', v); sys.exit(v != 'PASS')"
+      - name: Rebuild the test cases and workflows; the committed files must not change
+        run: |
+          python tests/make_cases.py
+          python workflows/build.py
+          git -c core.autocrlf=true diff --exit-code -- tests/cases workflows
