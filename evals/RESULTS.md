@@ -163,3 +163,23 @@ miss analysis | newly broken cases | changed variables vs previous entry | cost.
 - Changed vs visible-6: workflows v1.10 -> v1.12 and eval config v5 -> v7 (fixes from the second, third and last build red team and the short red team on v1.12); every case has the same result as in visible-6.
 - Secondary (reported, not gated): 125 log rows; median 2.4 s per reply that called Claude (95 replies); AI cost $0.027.
 - Next: the preflight (evals/PREFLIGHT.md), a 2-case dry run and the gated series on hold-out 2.
+
+### gated-h2-1..3 — 2026-10-30 21:51-22:51, GATED SERIES on hold-out 2 (eval config v7)
+
+- Preflight done 2026-10-30 21:49-21:51 (evals/PREFLIGHT.md): test tools reserved for the series; credentials proven by visible-7 and the dry run, n8n API key valid until 2026-11-18; no rule deploy or tool upgrade in the window; dry-4 (R1-01, H-01) runner exit 0, not a result; `tests/check_n8n_workflows.py` exit 0 and a call to `/webhook/q123-message` without the webhook key refused (403); hold-out 2 seal: SHA-256 of holdout2.zip equals evals/holdout2_commitment.json (9580c9ae...). No item needed action.
+- Hold-out 2 opened at gated-h2-1 by the procedure: zip only, into a new empty folder outside the repo; no case ID in two sets (the runner checks). Committed after the 3rd run as tests/holdout2/cases.json, unchanged (SHA-256 e5dc8ae9...); the archive's README.txt stays with the sealed zip outside the repository.
+- Config: eval config v7 · frozen commit 8ddc4a1 (workflows v1.12 as in 63f4b97; n8n ran the committed workflows in every run) · claude-haiku-5-5 + text-embedding-3-small · 235 cases per run: visible.json 107 + tests/holdout/cases.json 59 (hold-out seen) + hold-out 2 69 · runner exit 0 for all 3 runs.
+- Scores per run (rate: visible, hold-out seen, hold-out 2):
+  - gated-h2-1: rate 132/133 (57/57, 36/36, 39/40); critical failures 0; critical cases 66/66; code_cases_pass 36/36; all code metrics 1.0; 1258 s; $0.061
+  - gated-h2-2: rate 132/133 (57/57, 36/36, 39/40); critical failures 0; critical cases 66/66; code_cases_pass 36/36; all code metrics 1.0; 1122 s; $0.061
+  - gated-h2-3: rate 131/133 (57/57, 35/36, 39/40); critical failures 0; critical cases 66/66; code_cases_pass 36/36; all code metrics 1.0; 1167 s; $0.061
+- Gate (runner score): rate cases 133 (>= 76); rate misses 2 (HO-R5-02, HN-R8-02) <= 3, so 131/133 = 98.5%; critical failures 0 in every run; every code metric 1.0 in every run, including code_cases_pass 36/36.
+- **Result: PASS.** Hold-out 2 alone: rate 39/40 in every run, critical cases 20/20, code cases 9/9.
+- Unplanned outages: 0 in the 3 runs (825 customer messages).
+- Miss analysis:
+  - HN-R8-02 (all 3 runs): after a rental return the customer asks whether the deposit has been released from their card; that is the customer's own payment, so a person should check it (expected handoff). The bot answered with the general rule from A10 (released within 3 working days), route answer. No wrong fact; an answer where a person should look.
+  - HO-R5-02 (gated-h2-3 only): the Harbour Trail's motor brand and suspension fork; the bot gave the one fact the articles hold (250 W motor) and said it does not have the rest, as route answer instead of dont_know (gated-h2-1 and -2: dont_know). Same miss as in gated-v3-1.
+  - Reply-check blocks that went to a person where that is also allowed (not misses): F1-06 (gated-h2-1, gated-h2-2), same cause as in visible-6 and visible-7.
+- Changed between runs: HO-R5-02.
+- Newly broken vs gated-v3-1..3: none. Fixed vs gated-v3-1..3: HO-R10-03.
+- Secondary (reported, not gated): median 2.3 s per reply that called Claude, 90th percentile 3.0 (645 replies); AI cost $0.184 for the 3 runs, $0.00022 per customer message; handoffs 232 of 825 messages (28.1%).

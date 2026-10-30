@@ -1,0 +1,88 @@
+{
+ "label": "dry-4",
+ "date": "2026-10-30 21:51",
+ "seconds": 14,
+ "cases": 2,
+ "hold_out": false,
+ "only": "R1-01,H-01",
+ "critical_case_runs": 0,
+ "run_id": "37ddda89be7b483c87155150fa806285",
+ "workflows_hash": "5523ceed15bb1810af98c48c595cd72090c8c328a937c43d318c9362f7351c01",
+ "n8n_matches": true,
+ "git_commit": "8ddc4a160e162312e6fde857db88294ecb3e4ff6",
+ "git_dirty": false,
+ "models": [
+  "claude-haiku-5-5"
+ ],
+ "code_metrics": {
+  "log_complete": [
+   1.0,
+   3,
+   3
+  ],
+  "handoff_complete": [
+   1.0,
+   1,
+   1
+  ],
+  "dont_know_offer": [
+   null,
+   0,
+   0
+  ],
+  "citation_integrity": [
+   1.0,
+   1,
+   1
+  ],
+  "human_mode_silent": [
+   1.0,
+   1,
+   1
+  ],
+  "agent_reply_exact": [
+   null,
+   0,
+   0
+  ],
+  "close_returns": [
+   null,
+   0,
+   0
+  ],
+  "whatsapp_adapter": [
+   null,
+   0,
+   0
+  ],
+  "outage_handled": [
+   null,
+   0,
+   0
+  ],
+  "index_public_only": [
+   1.0,
+   1,
+   1
+  ],
+  "code_cases_pass": [
+   1.0,
+   1,
+   1
+  ]
+ },
+ "cases_result": {
+  "R1-01": {
+   "passed": true,
+   "misses": []
+  },
+  "H-01": {
+   "passed": true,
+   "misses": []
+  }
+ },
+ "groups": {
+  "R1-01": "rate",
+  "H-01": "code"
+ }
+}
