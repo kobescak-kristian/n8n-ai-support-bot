@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1200" width="1600" height="1200" font-family="Segoe UI, Helvetica, Arial, sans-serif">
-  <!-- Cover, 1600x1200. Every number is from evals/RESULTS.md, gated-v3-1..3 (a0f05b2). PNG: Edge headless screenshot at 1600x1200 (STATE.md change log 2026-10-21) -->
+  <!-- Cover, 1600x1200. Every number is from evals/RESULTS.md, gated-h2-1..3 (8ddc4a1). PNG: Edge headless screenshot at 1600x1200 (STATE.md change log) -->
   <defs>
     <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
       <stop offset="0" stop-color="#0f172a"/>
@@ -33,19 +33,19 @@
   <text x="1295" y="602" fill="#fff7ed" font-size="30" font-weight="600" text-anchor="middle">person takes over in Slack</text>
 
   <!-- results -->
-  <text x="100" y="745" fill="#93c5fd" font-size="30" font-weight="600">3 FULL TEST RUNS, 156 MADE-UP CUSTOMER CONVERSATIONS</text>
+  <text x="100" y="745" fill="#93c5fd" font-size="30" font-weight="600">3 FULL TEST RUNS, 235 MADE-UP CUSTOMER CONVERSATIONS</text>
   <rect x="100" y="780" width="440" height="220" rx="18" fill="#1e293b" stroke="#475569" stroke-width="2"/>
   <text x="140" y="885" fill="#34d399" font-size="96" font-weight="700">0</text>
   <text x="140" y="945" fill="#e2e8f0" font-size="34">critical failures</text>
   <text x="140" y="982" fill="#94a3b8" font-size="22">no made-up facts, no missed handoffs</text>
   <rect x="580" y="780" width="440" height="220" rx="18" fill="#1e293b" stroke="#475569" stroke-width="2"/>
-  <text x="620" y="885" fill="#34d399" font-size="96" font-weight="700">89/91</text>
+  <text x="620" y="885" fill="#34d399" font-size="88" font-weight="700">131/133</text>
   <text x="620" y="945" fill="#e2e8f0" font-size="34">normal questions right</text>
-  <text x="620" y="982" fill="#94a3b8" font-size="24">worst run · other 2 runs: 91/91</text>
+  <text x="620" y="982" fill="#94a3b8" font-size="24">worst run · other 2 runs: 132/133</text>
   <rect x="1060" y="780" width="440" height="220" rx="18" fill="#1e293b" stroke="#475569" stroke-width="2"/>
-  <text x="1100" y="885" fill="#34d399" font-size="96" font-weight="700">2.6 s</text>
+  <text x="1100" y="885" fill="#34d399" font-size="96" font-weight="700">2.3 s</text>
   <text x="1100" y="945" fill="#e2e8f0" font-size="34">median reply time</text>
-  <text x="1100" y="982" fill="#94a3b8" font-size="24">$0.00023 AI cost per message</text>
+  <text x="1100" y="982" fill="#94a3b8" font-size="24">$0.00022 AI cost per message</text>
 
-  <text x="100" y="1090" fill="#94a3b8" font-size="30">59 of the 156 cases written by a separate session · demo shop is made up</text>
+  <text x="100" y="1090" fill="#94a3b8" font-size="30">128 of the 235 cases written by a separate session, 69 unseen until these runs · made-up shop</text>
 </svg>
