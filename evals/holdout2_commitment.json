@@ -33,6 +33,18 @@
   "README.txt",
   "cases.json"
  ],
- "archive_sha256": "092158fa4e04a882b81155c8c9be881da9f123c733aa3a490ef23ef0f5a1c300",
- "how_to_open": "At the first gated run of the series only: take holdout2.zip from the folder q123-holdout-2 in the owner's user profile. Check that its SHA-256 equals archive_sha256; if it does not, the hold-out 2 result is void. Unzip only the zip into a new empty folder outside the repo and follow README.txt inside. The runner stops if any case ID is in two sets."
+ "archive_sha256": "9580c9aef1039a6b47cd97e649500cddfd2ce4a553dba75291020ac95ed8a4bf",
+ "how_to_open": "At the first gated run of the series only: take holdout2.zip from the folder q123-holdout-2 in the owner's user profile. Check that its SHA-256 equals archive_sha256; if it does not, the hold-out 2 result is void. Unzip only the zip into a new empty folder outside the repo and follow README.txt inside. The runner stops if any case ID is in two sets.",
+ "reseal": {
+  "version": 2,
+  "date": "2026-10-29",
+  "reason": "test-number clash with the first hold-out: HN-W-01, HN-W-02 and HN-W-03 used the same WhatsApp test number as HO-W-01, HO-W-02 and HO-H-01 (the runner stops on a shared number)",
+  "owner_decision": "Okay, I understood and I approve it. (owner, 2026-10-29, to: new numbers for HN-W-01, HN-W-02, HN-W-03, reseal; reason: test-number clash with the first hold-out)",
+  "changed": "only the WhatsApp number fields of those 3 cases (HN-W-01: 3 fields, HN-W-02: 4, HN-W-03: 2), by the writer session; no text, expected result or other case changed; 69 cases, same IDs; before any result",
+  "checks": "runner.load_cases on visible + first hold-out + hold-out 2 v2: no shared IDs, exit 0 (writer session); rule-conflict check of the v2 set against the final v1.11 tests/CASES.md (SHA-256 522447da... with Windows line endings, 487dd823... as stored in git): no conflict (writer session, case IDs only)",
+  "previous_archive": {
+   "file": "holdout2_sealed_v1.zip",
+   "sha256": "092158fa4e04a882b81155c8c9be881da9f123c733aa3a490ef23ef0f5a1c300"
+  }
+ }
 }

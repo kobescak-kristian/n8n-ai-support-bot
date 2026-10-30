@@ -1,4 +1,4 @@
-"""JavaScript for the n8n Code nodes of the support bot (Q-123).
+"""JavaScript for the n8n Code nodes of the support bot.
 
 Behaviour rules: tests/CASES.md section 4. The number, e-mail, link and code
 checks mirror tests/grading.py (normalize, numbers, EMAIL_RE, URL_RE, CODE_RE)
@@ -34,27 +34,71 @@ const EMAIL_RE = /[\w.+-]+@[\w-]+(?:\.[\w-]+)+/g;
 const URL_RE = /(?:https?:\/\/)?[\w-]+(?:\.[\w-]+)*\.example(?:\/[\w\-./]*)?|https?:\/\/\S+/g;
 // v1.10 (red team 13): also links without "http" on common endings, like www.shop.com/returns
 const DOMAIN_RE = /(?<![\w@.-])(?:www\.)?[a-z][\w-]*(?:\.[\w-]+)*\.(?:example|com|net|org|io|co|eu|uk|it|es|de|mt|info|shop|app)(?:\/[\w\-./]*)?(?![\w])/gi;
-// v1.10 (red team 16): the bot never says it refunded, approved, waived, cancelled or discounted anything
+// v1.10 (red team 16): the bot never says it refunded, approved, waived, cancelled or discounted anything (whole reply,
+// unchanged in v1.11: nothing is removed or narrowed).
 const PROMISE_RE = /\b(i|we)( have|'ve| just)? (refunded|approved|waived|cancell?ed the|removed the|applied (a|the|your) (discount|code|refund))\b|\b(refund|discount|exception) (has been|is) (approved|issued|processed|applied)\b|\bho (rimborsato|approvato|annullato)\b|\bhe (reembolsado|aprobado|cancelado)\b|\bhabe? (ich |wir )?(erstattet|genehmigt|storniert)\b/i;
+// v1.11 (red teams 2 and 3, with its second pass): more promises, checked per sentence. Something done ("I've gone ahead and cancelled",
+// "hemos reembolsado") always counts. A policy-like phrase ("you won't be charged", "we'll cancel the order") does
+// not count when a condition or "can't" comes before it in the sentence: "If you cancel 24 hours before, you won't be
+// charged", "Until it is sent, we'll cancel the order free of charge", "I can't see whether your refund was processed".
+const PROMISE_DONE_RE = new RegExp([
+  String.raw`\b(i|we)('ve| have)?( just| already| now)?( gone ahead and)? (refunded|approved|waived|credited|reimbursed|cancell?ed (the|your|it|this)|removed the|applied (a|the|your) (discount|code|refund)|issued (a|the|your) (refund|credit)|processed (a|the|your) (refund|cancellation|return))\b`,
+  String.raw`\b(as an exception|ausnahmsweise|in via eccezionale|eccezionalmente|como excepci[oó]n|excepcionalmente)\b`,
+  String.raw`(?<![a-zà-ÿ])(ho|abbiamo|è stato|è stata|e' stato|sono stati) (gi[àa] )?(\S+ ){0,3}(rimborsat|approvat|annullat|stornat)[oaie]\b`,
+  String.raw`\b(rimborsiamo|restituiamo)\b`,
+  String.raw`\b(he|hemos|han) (ya )?(\S+ ){0,3}(reembolsad|aprobad|cancelad|anulad)[oa]s?\b`, String.raw`\b(devolvemos|reembolsamos)\b`,
+  String.raw`\b(habe|haben|hat) (\S+ ){0,5}(erstattet|zurückerstattet|genehmigt|storniert|gutgeschrieben)\b`,
+  String.raw`\b(wir erstatten|erstatten wir)\b`,
+].join('|'), 'i');
+const PROMISE_POLICY_RE = new RegExp([
+  String.raw`\b(refund|discount|exception|claim) (is|was|has been) (now )?(approved|applied)\b`,
+  String.raw`\b(your|the) (refund|cancellation|credit) (was|has been|is now) (processed|issued|approved|completed|sent)\b`,
+  String.raw`\b(your|the) (booking|reservation|order|rental) (is|was|has been) (now )?(cancell?ed|refunded)\b`,
+  String.raw`\b(we|i)('ll| will) (waive|refund|reimburse|credit|cancel)\b`,
+  String.raw`\b(fee|charge|fine)s? (is|are|was|were|has been|have been|will be) waived\b`,
+  String.raw`\b(won't|will not|wont) (be charged|pay anything|have to pay)\b`,
+  String.raw`\b(you'll|you will) get (your|the) money back\b`, String.raw`\brefund is on (its|the) way\b`,
+  String.raw`\b(no|without any) (cancellation |late |extra )?(fee|charge) for you\b`,
+  String.raw`(?<![a-zà-ÿ])(è|e') (stat[oa] )?(annullat|rimborsat|stornat)[oa]\b`,
+  String.raw`\b(ha sido|han sido|est[áa]|fue) (cancelad|anulad|reembolsad|aprobad)[oa]s?\b`,
+  String.raw`\b(ist|wurde|wurden) (\S+ ){0,5}(erstattet|zurückerstattet|genehmigt|storniert|gutgeschrieben)\b`,
+].join('|'), 'i');
+const CONDITION_RE = /\b(if|unless|until|whether|once|after|before|when|can'?t|cannot|unable|not able|se|wenn|falls|bis|sobald|nachdem|bevor|ob|quando|finch[ée]|dopo|prima|cuando|hasta|despu[ée]s|antes|non posso|no puedo|kann nicht|können nicht)\b|\bsi\b(?!,)/i;
+function hasPromise(reply) {
+  if (PROMISE_RE.test(reply)) return true;
+  return reply.split(/(?<=[.!?])\s+/).some((s) => {
+    if (PROMISE_DONE_RE.test(s)) return true;
+    const m = s.match(PROMISE_POLICY_RE);
+    return !!m && !CONDITION_RE.test(s.slice(0, m.index));
+  });
+}
 const CODE_RE = /(?<![\w-])(?=[A-Z0-9-]*[A-Z])(?=[A-Z0-9-]*\d)[A-Z0-9][A-Z0-9-]{4,}(?![\w-])/g;
 const strip = (s) => s.replace(/[.,;:!?)"']+$/, '');
+// v1.11 (red teams 2 and 3): full-width letters (NFKC) and look-alike angle brackets become plain < >
+const fold = (t) => String(t || '').normalize('NFKC').replace(/[‹〈˂《⟨❮〈]/g, '<').replace(/[›〉˃》⟩❯〉]/g, '>');
 
 // v1.10 (red team 15, plan gap 5): a customer message that pastes or quotes shop documents (tags like the prompt's,
 // "help article", "FAQ", "system:", "staff notes", in 4 languages) is not a source of facts for the reply checks.
 const SOURCE_CLAIM = [
-  /<\/?[a-z_][\w-]*[^<>]*>/i, /\b(help |knowledge |kb )?(article|articles|artikel|articolo|articoli|art[ií]culos?)\b/i,
+  /<\/?[a-z_][\w-]*[^<>]*>/i, /\b(article|articles)\b/i,
+  // v1.11: "Artikel / articolo / artículo" alone mean "item"; they count with an article ID or "says" (red team 3)
+  /\b[AI]\d{2}\b/, /\b(artikel|articol[oi]|art[ií]culos?)\b.{0,60}\b(dice|dicono|steht|stehen|sagt|indica|says)\b/i,
+  /\b(hilfeartikel|articol[oi] (della |di |dell')?(guida|assistenza|supporto)|art[ií]culos? de (ayuda|soporte))\b/i,
   /\b(help (center|centre|page|desk)|knowledge base|faq|terms and conditions|official policy|policy update|price list)\b/i,
   /\b(system|admin|assistant|developer|instruction|instructions|staff note|staff notes|internal note)s?\s*:/i,
-  /\b(sistema|istruzioni|instrucciones|anweisung(en)?|hilfeartikel|preisliste|listino|lista de precios)\b/i,
+  /\b(sistema|istruzioni|instrucciones|anweisung(en)?|preisliste|listino|lista de precios)\b/i,
+  /\b(notice|announcement|newsletter|bulletin) (from|by) (harbour|the shop|your shop|you)\b/i,
+  /\b(your|the shop's|harbour's) (website|web site|site|page|ad|advert|flyer|email|e-mail) (says|said|states|shows)\b/i,
 ];
-const isSourceClaim = (t) => SOURCE_CLAIM.some((r) => r.test(String(t || '')));
+const isSourceClaim = (t) => SOURCE_CLAIM.some((r) => r.test(fold(t)));
 // the customer's messages that may back a fact in the reply (their own order numbers, dates, prices they mention)
 const customerFacts = (texts) => texts.filter((t) => !isSourceClaim(t)).join('\n');
 
-// Checks before send (CASES.md rule 8). sources = text of the cited articles + customerFacts() of the customer's messages.
-function replyChecks(reply, sources) {
+// Checks before send (CASES.md rule 8). sources = text of the cited articles; customer = customerFacts() of the
+// customer's messages, which may back a number only (v1.11, red team 2 finding 5: never an e-mail, link or code)
+function replyChecks(reply, sources, customer = '') {
   const fails = [];
-  const allowedNums = numbers(sources);
+  const allowedNums = numbers(sources + '\n' + customer);
   for (const n of numbers(reply)) if (!allowedNums.has(n)) fails.push(`number ${n} not in cited articles`);
   // e-mails and links compared as whole items, never as part of a longer one (red team 13)
   const items = (t, re) => new Set((t.match(re) || []).map((x) => normalize(strip(x)).replace(/^https?:\/\//, '').replace(/\/$/, '')));
@@ -66,7 +110,7 @@ function replyChecks(reply, sources) {
     const u2 = normalize(strip(u)).replace(/^https?:\/\//, '').replace(/\/$/, '');
     if (u2 && !allowedLinks.has(u2)) fails.push(`link ${u}`);
   }
-  if (PROMISE_RE.test(reply)) fails.push('promise phrase');
+  if (hasPromise(reply)) fails.push('promise phrase');
   for (const c of reply.match(CODE_RE) || []) if (!sources.includes(c)) fails.push(`code-like ${c}`);
   if (/CANARY/i.test(reply)) fails.push('canary text');
   if (!reply.trim()) fails.push('empty reply');
@@ -75,6 +119,8 @@ function replyChecks(reply, sources) {
 }
 
 // Person requests and safety words, 4 languages (CASES.md rule 6). Runs before the AI.
+// v1.11 rule (after red teams 2 and 3, with its second pass): these lists only grow from v1.10, nothing is removed or narrowed; a false alarm
+// is a needless handoff (a rate miss at worst), a missed one can be a critical failure.
 const PERSON = [
   /\b(real|actual) (person|human)\b/i, /\bhuman\b/i, /\b(talk|speak|chat) (to|with) (a |an |the |)(person|human|someone|somebody|agent|operator|colleague|staff|manager)\b/i,
   /\b(i need|i want|can i get|can i have|get me) (a |an |)(person|human|agent|someone|somebody)\b/i, /\bumano\b/i,
@@ -82,6 +128,11 @@ const PERSON = [
   /\boperator[ea]?\b/i, /\bparlare con (qualcuno|una persona|un operatore)\b/i, /\bpersona reale\b/i,
   /\bhablar con (alguien|una persona|un agente)\b/i, /\bun humano\b/i,
   /\bmit (einem menschen|jemandem|einem mitarbeiter|einer mitarbeiterin) (sprechen|reden)\b/i, /\becht(e|en) person\b/i,
+  // v1.11 (red teams 2 and 3)
+  /\b(real|live) (agent|operator|staff|employee|assistant)\b/i, /\b(talk|speak|chat) (to|with) (one of your|a member of|your) (staff|team|colleagues?|employees?)\b/i,
+  /\b(call|ring|phone) me back\b/i, /\b(someone|somebody) (to )?(call|phone|ring|contact) me\b/i,
+  /\b(einen|eine|einem|einer) mitarbeiter(in)? (sprechen|reden)\b/i,
+  /\bhablar con (el|la) (encargad[oa]|responsable|gerente)\b/i, /\bparlare con (il|la) (responsabile|direttore|direttrice)\b/i,
 ];
 const SAFETY = [
   /\bsmok(e|es|ed|ing)\b/i, /\bburn(ing|t|ed|s)?\b/i, /\bfire\b/i, /\bswoll?en\b/i, /\bswell(ing)?\b/i, /\bbleed(ing|s)?\b/i,
@@ -94,7 +145,29 @@ const SAFETY = [
   /\bfum(o|a)\b/i, /\bbruciat/i, /\bfuoco\b/i, /\bgonfi[ao]\b/i, /\bsangu/i, /\bferit[oa]\b/i,
   /\bhumo\b/i, /\bquemad/i, /\bfuego\b/i, /\bhinchad/i, /\bsangr/i, /\bherid[oa]\b/i,
   /\brauch/i, /\bbrenn/i, /\bfeuer\b/i, /\baufgebl[äa]ht/i, /\bblut/i, /\bverletz/i,
+  // v1.11 (red teams 2 and 3, with its second pass): flames, melting near a device, falls, crashes, broken bones, head hits, unconscious,
+  // ambulance, electric shock, short circuit, overheating and accidents in 4 languages
+  /\bflames\b/i, /\bin flames\b/i, /\bflame (coming|out|from)\b/i, /\bfiamm[ea] (che|esce|escono|dal|dalla)\b/i, /\bfiamme\b/i,
+  /\b(salen|sale|hay|con|en|echa) llamas\b/i, /\bqualm(t|en)?\b/i, /\bincendi[oa]\b/i,
+  /\b(ein|einen|einem) brand\b/i, /\bbrand (im|in der|in meinem|in unserem)\b/i, /(?<![a-zäöüß])[üu]berhitz(t|en|e)\b/i,
+  /\bsurriscald/i, /\bsobrecalient/i,
+  /\b(cable|charger|plug|battery|wire|plastic|socket|cavo|caricatore|presa|kabel|ladeger[äa]t|stecker|akku|cargador|enchufe|bater[ií]a)\b.{0,40}\b(melt(ing|ed|s)?|geschmolzen|schmilzt)\b/i,
+  /\b(melt(ing|ed|s)?|geschmolzen|schmilzt)\b.{0,40}\b(cable|charger|plug|battery|wire|plastic|socket|kabel|ladeger[äa]t|stecker|akku)\b/i,
+  /\b(fell|fallen|falls) (off|from)\b/i, /\bcadut[oaie]\b/i, /\b(se|me) (ha |he )?ca[ií]d[oa]\b/i, /\bse cay[oó](?![a-zà-ÿ])/i,
+  /\b(bin|ist|sind) (\S+ ){0,4}gefallen\b/i,
+  /\b(i|we|he|she|they) crashed\b/i, /\bcrashed (into|the bike|the rental|the e-?bike|my bike)\b/i, /\b(had|have had) a crash\b/i,
+  /\b(bike|bicycle|e-?bike) crash\b/i,
+  /\bbroke (my|his|her|their) (arm|wrist|leg|ankle|hand|collarbone|nose|finger|rib|bone)s?\b/i,
+  /\bbroken (arm|wrist|leg|ankle|collarbone|nose|rib|bone)s?\b/i, /\bhit (my|his|her|their) head\b/i,
+  /\b(unconscious|not moving|bewusstlos|ohnm[äa]chtig|bewegt sich nicht|incosciente|svenut[oa]|non si muove|inconsciente|desmayad[oa]|no se mueve)\b/i,
+  /\bambulan(ce|za|cia)\b/i, /\b(krankenwagen|rettungswagen|notarzt)\b/i,
+  /\belectric(al)? shocks?\b/i, /\bshock(ed|s)? (me |him |her )?(from|by) (the |a |my )?(charger|battery|bike|cable|plug)\b/i,
+  /\b(charger|battery|cable|plug) (gave me|shocked)\b/i, /\bscossa\b/i, /\bstromschlag\b/i,
+  /\bdescarga el[eé]ctrica\b/i, /\bme dio (una )?descarga\b/i, /\b(short circuit|cortocircuito|kurzschluss)\b/i,
+  /\b(si [èe]|mi sono|ci siamo) (fatt[oa]|fatti) male\b/i, /\b(me he|se ha|se hizo|me hice) (hecho )?da[ñn]o\b/i,
+  /\b(tut|tun) (sehr |so )?weh\b/i, /\bme duele\b/i, /\bmi fa male\b/i, /\b(my \w+|it) hurts\b/i,
 ];
+const isUnsafe = (t) => SAFETY.some((r) => r.test(t));
 
 function priceOf(model, tin, tout) {
   const p = model.includes('haiku') ? [0.10, 0.50] : model.includes('opus') ? [4, 20] : [2, 10];
@@ -125,7 +198,7 @@ const text = String(inp.text || '');
 // in human mode the bot stays silent for everything else, media included (appended to the Slack thread)
 const said = inp.media ? String(inp.caption || '') : text;
 let next = 'retrieve', reason = 'none';
-if (SAFETY.some((r) => r.test(said))) { next = 'handoff'; reason = 'safety'; }
+if (isUnsafe(said)) { next = 'handoff'; reason = 'safety'; }
 else if (mode === 'human') next = 'human_mode';
 else if (PERSON.some((r) => r.test(said))) { next = 'handoff'; reason = 'customer_request'; }
 else if (inp.media) next = 'media';
@@ -133,6 +206,7 @@ const lastCustomer = history.filter((h) => h.role === 'customer').slice(-1).map(
 return [{ json: {
   state: { ...inp, run_label: inp.run_label || 'demo', simulate: inp.simulate || null, t0, mode, next, pre_reason: reason,
            history: history.slice(-12), transcript: history, said, customer_texts: customerTexts, thread_ts: lastHandoff ? lastHandoff.slack_ts : null,
+           media_text: inp.media ? `[media] ${String(inp.caption || '')}`.trim() : text,
            query: [...lastCustomer, text].join('\n') } } }];
 """
 
@@ -181,7 +255,7 @@ const found = ok ? r.body.map((c) => ({ id: (c.metadata || {}).article_id, title
 const best = found.length ? found[0].score : 0;
 const articles = found.map((a) => `<article id="${a.id}"${a.status === 'archived' ? ' status="ARCHIVED"' : ''}>\n${a.text}\n</article>`).join('\n');
 // v1.10 (red team 15): the customer's words cannot close or open the prompt's own tags
-const esc = (t) => String(t).replace(/</g, '&lt;').replace(/>/g, '&gt;');
+const esc = (t) => fold(t).replace(/</g, '&lt;').replace(/>/g, '&gt;');  // v1.11: full-width and look-alike < > folded first
 const conv = s.history.map((h) => `${h.role === 'customer' ? 'Customer' : 'Assistant'}: ${esc(h.text)}`).join('\n');
 const user = `<articles>\n${articles}\n</articles>\n<conversation>\n${conv}\n</conversation>\n<customer_message>\n${esc(s.text)}\n</customer_message>`;
 const model = '__MODEL__';
@@ -225,7 +299,7 @@ else {
         if (route !== 'handoff') {
           const ids = new Set(retrieved.map((r) => r.id));
           const citedText = srch.found.filter((a) => cited.includes(a.id)).map((a) => a.text).join('\n');
-          const fails = replyChecks(reply, citedText + '\n' + customerFacts(s.customer_texts));
+          const fails = replyChecks(reply, citedText, customerFacts(s.customer_texts));
           if (cited.some((c) => !ids.has(c))) fails.push('cited an article that was not retrieved');
           if (route === 'answer' && !cited.length) fails.push('answer without a cited article');
           if (fails.length) { checks.fail = fails; checks.blocked_reply = reply; route = 'handoff'; reason = 'check_failed'; reply = ''; cited = []; }
@@ -241,14 +315,23 @@ if (route === 'handoff') reply = (reason === 'safety' ? FIXED.SAFETY_TEXT + ' ' 
 // Slack: handoff message, thread append in human mode, or an alert on an outage
 const formLink = `http://localhost:5678/webhook/q123-agent?c=${encodeURIComponent(s.conversation_id)}`;
 let slack = null;
+// v1.11 (red teams 2 and 3): Slack text is capped at 12,000 characters after Slack escaping
+const escLen = (t) => t.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').length;
 if (route === 'handoff') {
   // every message of the conversation, not only the prompt's 12-message window (red team 7)
-  const said = s.media ? `[media] ${s.said || ''}`.trim() : s.text;
-  const lines = [...(s.transcript || s.history), { role: 'customer', text: said }].map((h) => `${h.role === 'customer' ? 'Customer' : 'Bot'}: ${h.text}`);
+  const lines = [...(s.transcript || s.history), { role: 'customer', text: s.media_text }].map((h) => `${h.role === 'customer' ? 'Customer' : 'Bot'}: ${h.text}`);
+  // at most 12,000 characters of conversation after escaping, the newest kept
+  let conv = lines.join('\n');
+  if (escLen(conv) > 12000) {
+    while (escLen(conv) > 12000) conv = conv.slice(Math.max(1, Math.floor(conv.length / 10)));
+    conv = '(earlier messages cut, see the reply form)\n' + conv;
+  }
   slack = { kind: 'handoff', text: `Handoff (reason: ${reason}) | conversation ${s.conversation_id} | channel ${s.channel}${s.simulate ? ' | simulated' : ''}\n` +
-            lines.join('\n') + (checks.blocked_reply ? `\nBlocked draft: ${checks.blocked_reply}` : '') + `\nReply form: ${formLink}` };
+            conv + (checks.blocked_reply ? `\nBlocked draft: ${checks.blocked_reply.slice(0, 1200)}` : '') + `\nReply form: ${formLink}` };
 } else if (route === 'human_mode' && s.thread_ts) {
-  slack = { kind: 'append', text: `Customer: ${s.media ? `[media] ${s.said || ''}`.trim() : s.text}`, thread_ts: s.thread_ts };
+  let text = `Customer: ${s.media_text}`;
+  while (escLen(text) > 12000) text = text.slice(0, Math.floor(text.length * 0.9));
+  slack = { kind: 'append', text, thread_ts: s.thread_ts };
 } else if (outage) {
   slack = { kind: 'alert', text: `ALERT${s.simulate ? ' (simulated)' : ''}: ${outage} failed for conversation ${s.conversation_id}. The customer got the fallback message.` };
 }
@@ -283,7 +366,7 @@ return [{ json: f }];
 MESSAGE_ROWS = LIB + r"""
 const s = $('Pre-check').first().json.state, f = $('After Slack').first().json;
 const at = nowIso();
-const out = [{ json: { conversation_id: s.conversation_id, role: 'customer', text: s.text || (s.media ? '[media]' : ''), at, run_label: s.run_label } }];
+const out = [{ json: { conversation_id: s.conversation_id, role: 'customer', text: s.media_text || '', at, run_label: s.run_label } }];  // v1.11: caption kept
 if (f.reply) out.push({ json: { conversation_id: s.conversation_id, role: 'bot', text: f.reply, at: nowIso(), run_label: s.run_label } });
 return out;
 """
@@ -293,7 +376,7 @@ const s = $('Pre-check').first().json.state, f = $('After Slack').first().json;
 const cost = priceOf(f.model || '__MODEL__', f.tin, f.tout) + (f.embed_tokens || 0) * 0.02 / 1e6;
 const logId = `${s.conversation_id}|${Date.now()}|${Math.random().toString(36).slice(2, 8)}`;
 return [{ json: { log_id: logId, ts: nowIso(), run_label: s.run_label, channel: s.channel, conversation_id: s.conversation_id,
-  message_id: s.message_id || '', message: s.text || '', route: f.route, reason: f.reason, reply: f.reply,
+  message_id: s.message_id || '', message: s.media_text || '', route: f.route, reason: f.reason, reply: f.reply,
   retrieved: JSON.stringify(f.retrieved), cited: JSON.stringify(f.cited), checks: JSON.stringify(f.checks),
   model: f.model, tokens_in: f.tin, tokens_out: f.tout, cost: Math.round(cost * 1e6) / 1e6,
   seconds: Math.round((Date.now() - s.t0) / 100) / 10, simulated: !!s.simulate, ai_called: !!f.ai_called,

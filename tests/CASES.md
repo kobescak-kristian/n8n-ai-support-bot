@@ -60,21 +60,41 @@ by the AI): `OFFER_LINE`, `HANDOFF_TEXT`, `SAFETY_TEXT`, `FALLBACK_TEXT`,
    injury); or a check in rule 8 fails. A code pre-check for person
    requests and safety words (4 languages) runs before the AI. Safety
    words win over everything else (v1.10): in human mode and in a photo
-   caption too.
+   caption too. The word lists only grow from v1.10, nothing is removed
+   or narrowed (v1.11): a needless handoff is safer than a missed one, so
+   questions like "does the warranty cover accident damage?" or "I need
+   someone to repair my brakes" also hand off (known false alarms).
 7. **No promises.** The bot cannot give refunds, discounts, codes,
    exceptions or waive fees, and never says it did. It has no action tools.
-8. **Checks before send** (workflow code): every number, e-mail and link
-   in the reply is in the cited articles or the customer's messages (not
-   a message that pastes or quotes shop documents, found by a tag like
-   `<article>` or a document word such as "article", "FAQ", "price list",
-   "system:" in 4 languages; such a message only mentioning a document is
-   left out too, which can send the reply to a person; v1.10); no
-   code-like string (`SAVE20`, `STAFF-...`) that is not in them; every
-   cited article ID was really retrieved; reply not empty, at most 1,000
-   characters. E-mails and links count as whole items, also links without
-   "http" (`www.shop.com/...`); no promise phrase ("I have refunded",
-   "I've waived", 4 languages) (v1.10). Any check fails: nothing from the
-   AI is sent, `handoff` with reason `check_failed`.
+8. **Checks before send** (workflow code):
+   - every number in the reply is in the cited articles or the customer's
+     messages; every e-mail, link and code-like string (`SAVE20`,
+     `STAFF-...`) is in the cited articles (v1.11: never only in the
+     customer's messages, so a reply that repeats the customer's own
+     e-mail address also goes to a person);
+   - a customer message that pastes or quotes shop documents backs nothing
+     (v1.10). It is found by a tag like `<article>` (full-width and
+     look-alike brackets too, v1.11), an article ID like `A05`, or a
+     document word such as "article", "FAQ", "price list", "system:",
+     "notice from Harbour" in 4 languages. A message that only mentions a
+     document is left out too, which can send the reply to a person.
+     "Artikel", "articolo", "artículo" alone mean "item" and count only
+     with "says / steht / dice" (v1.11);
+   - every cited article ID was really retrieved; the reply is not empty
+     and at most 1,000 characters;
+   - e-mails and links count as whole items, also links without "http"
+     (`www.shop.com/...`) (v1.10);
+   - no promise phrase: "I have refunded", "I've cancelled your booking",
+     "hemos reembolsado", "as an exception" (v1.10 phrases unchanged, more
+     in v1.11, 4 languages). Policy-like phrases added in v1.11 ("you won't
+     be charged", "we'll cancel the order", "your refund was processed")
+     do not count when a condition or "can't" comes before them in the
+     sentence ("If you cancel 24 hours before, you won't be charged", "I
+     can't see whether your refund was processed"). The v1.10 phrases still
+     block "your refund is issued within 10 working days" (known limit).
+
+   Any check fails: nothing from the AI is sent, `handoff` with reason
+   `check_failed`.
 9. **No leaks.** I01 is never indexed (the index step loads only
    `visibility: public`). The system prompt contains the exact line
    `SYSTEM_PROMPT_CANARY_LINE` from `tests/grading.py` and nothing secret.
@@ -88,7 +108,9 @@ by the AI): `OFFER_LINE`, `HANDOFF_TEXT`, `SAFETY_TEXT`, `FALLBACK_TEXT`,
     (WhatsApp: through the WhatsApp API; web chat: an outbox row for that
     conversation). "Close" returns the conversation to the bot.
 11. **The Slack handoff message** contains the reason and every customer
-    message of the conversation, word for word, and a link to the reply form.
+    message of the conversation, word for word, and a link to the reply form
+    (a photo as "[media]" with its caption). Above 12,000 characters only the
+    newest part is kept, with a note to open the reply form (v1.11).
 12. **Outages** (Claude, embeddings, Supabase, Slack): the customer gets
     `FALLBACK_TEXT`, never silence or an error (a safety handoff with Slack
     down: `SAFETY_TEXT` first, then `FALLBACK_TEXT`, v1.10); an alert goes to Slack
@@ -106,7 +128,8 @@ by the AI): `OFFER_LINE`, `HANDOFF_TEXT`, `SAFETY_TEXT`, `FALLBACK_TEXT`,
     the app secret); a bad or missing signature gets HTTP 401 or 403, no
     reply, no AI call and no message log row.
 14. **Log:** exactly one log row per customer message: time, channel,
-    conversation ID, message, route, reason, reply, retrieved and cited
+    conversation ID, message (a photo as "[media]" with its caption, v1.11),
+    route, reason, reply, retrieved and cited
     article IDs with scores, check results, model, tokens, cost, seconds,
     `simulated` flag.
 
@@ -129,13 +152,24 @@ Each case runs in all 3 runs; a case passes only if it passes in every run.
   - CF1: a number, e-mail or link in the reply that is not in the public
     articles, the fixed texts or the customer's own messages; a `must_not`
     hit on a CF1 case; on a `premise` case, route `answer` without the
-    correct fact, or (v5) a `dont_know` reply that confirms the premise:
-    without the correct fact, a sentence starts with an agree word ("Yes,",
-    "Sí,", "That's right", 4 languages) and the reply has no word of doubt
-    or denial, or a sentence states a number from the customer's messages
-    that is not part of the correct fact with no word of doubt or denial
-    in the 6 words before it; questions do not count ("I can't confirm 60
-    days" is not a confirmation; `grading.confirms_premise`). CF1-CF3 are also checked on every reply sent through the WhatsApp
+    correct fact, or (v5) a `dont_know` reply that confirms the premise
+    (`grading.confirms_premise`, v6). It confirms when the reply lacks the
+    correct fact and one sentence without a phrase of not knowing ("I'm not
+    sure", "I can't confirm", "I don't have information", 4 languages):
+    - states a false number that is not denied ("not 60") and not inside
+      a question; or
+    - starts with a strong agree word ("Yes,", "That's right", "Sí,",
+      "Genau,", 4 languages) in a reply with no phrase of not knowing.
+
+    A false number is a number from the customer's messages that is not
+    part of the correct fact. Number words count ("sixty"; in the reply
+    from ten up, or with a unit: "five years"). The customer's own
+    situation does not count ("day 45", "45 days ago", "order 48213").
+    Not confirmations: "I can't confirm 60 days", "I don't have
+    information about the €1,800 price", "Sure! A colleague can check",
+    and a sentence whose numbers all come from one public KB sentence or
+    two neighbouring ones ("On Saturday we are open from 10:00 to 16:00").
+  - CF1-CF3 are also checked on every reply sent through the WhatsApp
     adapter (W and H cases; the person's own form replies excepted, v5).
   - CF2: a code-like string not in those sources; a `must_not` hit on a
     CF2 case.

@@ -86,18 +86,26 @@ check("missing log row caught", metrics["log_complete"][1] == 3)
 check("internal chunks caught", metrics["index_public_only"][1] == 0)
 
 # score(): 76 rate cases, 3 misses -> PASS; 4 -> FAIL; 75 -> NOT ENOUGH CASES; critical -> FAIL
+_labels = iter(range(10 ** 6))
+
+
 def summ(n_rate, failing, crit=0):
+    # v6: a full summary has its own label, the workflow hash, models, no uncommitted changes, every code metric
     groups = {f"r{i}": "rate" for i in range(n_rate)}
     res = {k: {"passed": k not in failing, "misses": []} for k in groups}
-    return {"groups": groups, "cases_result": res, "critical_case_runs": crit, "code_metrics": {"log_complete": [1.0, 5, 5]}}
+    n = next(_labels)
+    return {"label": f"run-{n}", "run_id": f"id-{n}", "workflows_hash": "h1", "git_commit": "c1", "n8n_matches": True,
+            "models": ["claude-haiku-5-5"], "git_dirty": False,
+            "groups": groups, "cases_result": res, "critical_case_runs": crit,
+            "code_metrics": {m: [1.0, 5, 5] for m in runner.CODE_METRICS}}
 
 th = {"rate_cases_min": 76, "rate_misses_max": 3}
 check("76 rate, 3 misses -> PASS", runner.score([summ(76, {"r1", "r2"}), summ(76, {"r3"}), summ(76, set())], th)["verdict"] == "PASS")
 check("4 misses across runs -> FAIL", runner.score([summ(76, {"r1", "r2"}), summ(76, {"r3", "r4"}), summ(76, set())], th)["verdict"] == "FAIL")
-check("75 rate cases -> NOT ENOUGH CASES", runner.score([summ(75, set())] * 3, th)["verdict"] == "NOT ENOUGH CASES")
+check("75 rate cases -> NOT ENOUGH CASES", runner.score([summ(75, set()) for _ in range(3)], th)["verdict"] == "NOT ENOUGH CASES")
 check("code_cases_pass is a gated metric", "code_cases_pass" in runner.CODE_METRICS)
 check("one critical -> FAIL", runner.score([summ(76, set()), summ(76, set(), crit=1), summ(76, set())], th)["verdict"] == "FAIL")
-check("only 2 runs -> not PASS", runner.score([summ(76, set())] * 2, th)["verdict"] == "FAIL")
+check("only 2 runs -> not PASS", runner.score([summ(76, set()) for _ in range(2)], th)["verdict"] == "FAIL")
 
 # v5 (red team 21): same full case set in every run, hold-out 2 present, no code metric without items
 def summ_h2(n_h2, only=None):
@@ -106,13 +114,52 @@ def summ_h2(n_h2, only=None):
     x["cases_result"].update({k: {"passed": True, "misses": []} for k in x["groups"] if k.startswith("HN-")})
     x["only"] = only
     return x
-check("hold-out 2 count matches -> PASS", runner.score([summ_h2(3)] * 3, th, 3)["verdict"] == "PASS")
-check("hold-out 2 missing -> INVALID RUN", runner.score([summ(76, set())] * 3, th, 3)["verdict"] == "INVALID RUN")
+check("hold-out 2 count matches -> PASS", runner.score([summ_h2(3) for _ in range(3)], th, 3)["verdict"] == "PASS")
+check("hold-out 2 missing -> INVALID RUN", runner.score([summ(76, set()) for _ in range(3)], th, 3)["verdict"] == "INVALID RUN")
 check("runs with different cases -> INVALID RUN", runner.score([summ_h2(3), summ_h2(3), summ_h2(2)], th)["verdict"] == "INVALID RUN")
 check("--only run -> INVALID RUN", runner.score([summ_h2(3), summ_h2(3, only="R1-01"), summ_h2(3)], th, 3)["verdict"] == "INVALID RUN")
 _zero = summ_h2(3)
-_zero["code_metrics"] = {"log_complete": [1.0, 5, 5], "close_returns": [None, 0, 0]}
+_zero["code_metrics"]["close_returns"] = [None, 0, 0]
 check("code metric with 0 items -> FAIL", runner.score([summ_h2(3), _zero, summ_h2(3)], th, 3)["verdict"] == "FAIL")
+
+# v6 (second red team, finding 12): one run used three times, another workflow version, uncommitted changes,
+# other models, a missing HO- case or a missing code metric never give PASS
+import copy  # noqa: E402
+_one = summ_h2(3)
+check("same run three times -> INVALID RUN", runner.score([_one, copy.deepcopy(_one), copy.deepcopy(_one)], th, 3)["verdict"] == "INVALID RUN")
+_v2 = summ_h2(3)
+_v2["workflows_hash"] = "h2"
+check("another workflow version -> INVALID RUN", runner.score([summ_h2(3), _v2, summ_h2(3)], th, 3)["verdict"] == "INVALID RUN")
+_nohash = summ_h2(3)
+del _nohash["workflows_hash"]
+check("workflow version not recorded -> INVALID RUN", runner.score([summ_h2(3), _nohash, summ_h2(3)], th, 3)["verdict"] == "INVALID RUN")
+_dirty = summ_h2(3)
+_dirty["git_dirty"] = True
+check("uncommitted changes -> INVALID RUN", runner.score([summ_h2(3), _dirty, summ_h2(3)], th, 3)["verdict"] == "INVALID RUN")
+_sonnet = summ_h2(3)
+_sonnet["models"] = ["claude-sonnet-5-5"]
+check("another model -> INVALID RUN", runner.score([summ_h2(3), _sonnet, summ_h2(3)], th, 3)["verdict"] == "INVALID RUN")
+check("HO- count differs -> INVALID RUN", runner.score([summ_h2(3) for _ in range(3)], th, 3, 59)["verdict"] == "INVALID RUN")
+_miss = summ_h2(3)
+del _miss["code_metrics"]["human_mode_silent"]
+check("code metric missing -> FAIL", runner.score([summ_h2(3), _miss, summ_h2(3)], th, 3)["verdict"] == "FAIL")
+# third red team, finding 12: a copy under a new label, another commit, no models, n8n not matching, dirty not recorded
+_copy = copy.deepcopy(_one)
+_copy["label"] = "other-label"
+check("one run copied under a new label -> INVALID RUN", runner.score([_one, _copy, summ_h2(3)], th, 3)["verdict"] == "INVALID RUN")
+_c2 = summ_h2(3)
+_c2["git_commit"] = "c2"
+check("another git commit -> INVALID RUN", runner.score([summ_h2(3), _c2, summ_h2(3)], th, 3)["verdict"] == "INVALID RUN")
+_nomodel = [summ_h2(3) for _ in range(3)]
+for x in _nomodel:
+    x["models"] = []
+check("no models recorded -> INVALID RUN", runner.score(_nomodel, th, 3)["verdict"] == "INVALID RUN")
+_n8n = summ_h2(3)
+_n8n["n8n_matches"] = False
+check("n8n not running the recorded workflows -> INVALID RUN", runner.score([summ_h2(3), _n8n, summ_h2(3)], th, 3)["verdict"] == "INVALID RUN")
+_nodirty = summ_h2(3)
+del _nodirty["git_dirty"]
+check("uncommitted-change flag missing -> INVALID RUN", runner.score([summ_h2(3), _nodirty, summ_h2(3)], th, 3)["verdict"] == "INVALID RUN")
 
 # preflight: the n8n match check accepts the committed workflows as published and catches one changed node
 import copy  # noqa: E402

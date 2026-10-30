@@ -31,7 +31,7 @@ Tested on 156 made-up customer conversations: 97 written before the build and 59
   - Every system case passed in each run (23 of 23): every message logged, every handoff in Slack with the full conversation, outages answered with a fallback message and an alert, WhatsApp replies to the right number.
 - **Speed and cost:** median 2.6 seconds per reply (90th percentile 3.3). AI cost $0.00023 per customer message ($0.123 for the 3 runs).
 - **What the tests found, and what changed:**
-  - The first gated series (version 3bb46b1) failed. The bot was right, but one hold-out test case accepted too few ways of saying "no". The owner corrected that case, with the reason recorded. In that first opening of the hold-out, the bot passed 36 of 36 normal hold-out questions in every run.
+  - The first gated series (version 3bb46b1) failed. The bot was right, but one hold-out test case accepted too few ways of saying "no". That case was corrected, with the reason recorded. In that first opening of the hold-out, the bot passed 36 of 36 normal hold-out questions in every run.
   - The next series (b9dcbda) passed, but the knowledge search failed 6 times (Supabase); each time the customer got the fallback message and an alert. Version a0f05b2 retries the search once and logs the error code: 0 search failures in its 3 runs.
   - The reply checks are strict on purpose. Sometimes they block a correct answer, for example "under 18" for an article that says "aged 16 or 17". When that happens, the customer gets a person instead of the answer.
 
@@ -41,6 +41,6 @@ Tested on 156 made-up customer conversations: 97 written before the build and 59
 | version | date | change |
 |---|---|---|
 | 0.0 | 2026-10-19 | Scaffold; eval gate and 97 test cases written before the build; 59 hold-out cases sealed by a separate session |
-| 0.1 | 2026-10-20 | Workflows built and tested; first gated series FAIL (test case wording, corrected by owner decision) |
+| 0.1 | 2026-10-20 | Workflows built and tested; first gated series FAIL (test case wording, corrected by a recorded decision) |
 | 0.2 | 2026-10-20 | Gated series PASS on b9dcbda (hold-out seen) |
 | 0.3 | 2026-10-21 | Retry on the knowledge search, error codes in the log, gate v3; gated series PASS on a0f05b2 (hold-out seen) |

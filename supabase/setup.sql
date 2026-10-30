@@ -1,4 +1,4 @@
--- Supabase setup for the n8n AI support bot (Q-123).
+-- Supabase setup for the n8n AI support bot.
 -- Run once in the Supabase SQL Editor of the project "n8n-ai-support-bot".
 -- Shape follows Supabase's LangChain quickstart (the n8n Supabase Vector
 -- Store node uses that shape), with our own table and function names.

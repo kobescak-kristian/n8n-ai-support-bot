@@ -1,14 +1,13 @@
-"""Generate and load the n8n workflows of the AI support bot (Q-123).
+"""Generate and load the n8n workflows of the AI support bot.
 
 python workflows/build.py           -> workflows/*.json (placeholders: no credential IDs, no Supabase URL, no secrets)
 python workflows/build.py --push    -> also creates the test-only credentials from the git-ignored .env (webhook keys,
                                        form login, WhatsApp test token and app secret), creates/updates every Q123
-                                       workflow in local n8n through the n8n API, fills credential and workflow IDs by
-                                       name, and publishes them. Owner-made credentials (Anthropic, OpenAI, Supabase,
+                                       workflow in n8n through the n8n API, fills credential and workflow IDs by
+                                       name, and publishes them. Hand-made credentials (Anthropic, OpenAI, Supabase,
                                        Slack) must already exist with their standard names.
 
-Shared n8n: only Q123-prefixed workflows, q123_* data tables and /webhook/q123-* paths. Never restarts or
-reconfigures n8n. The workflow logic lives here and in bot_js.py; the JSON files are build output.
+Only Q123-prefixed workflows, q123_* data tables and /webhook/q123-* paths are touched. Never restarts or reconfigures n8n. The workflow logic lives here and in bot_js.py; the JSON files are build output.
 """
 import json
 import sys

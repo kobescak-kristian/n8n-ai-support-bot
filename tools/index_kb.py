@@ -1,8 +1,8 @@
-"""Send the knowledge base to the index workflow (Q-123).
+"""Send the knowledge base to the index workflow.
 
 Posts EVERY file in tests/kb/ (the internal I01 too): the workflow itself must keep only
 visibility: public (CASES.md rule 9), and the report checks that it did.
-Run: python tools/index_kb.py   (needs the local n8n, the Q123 workflows and Q123_WEBHOOK_KEY in .env)
+Run: python tools/index_kb.py   (needs n8n running, the Q123 workflows and Q123_WEBHOOK_KEY in .env)
 """
 import json
 import sys

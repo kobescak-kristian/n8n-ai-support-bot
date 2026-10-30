@@ -75,8 +75,9 @@ def compare(docs, live, creds, wf_ids, env):
     return problems
 
 
-def main():
-    sys.stdout.reconfigure(encoding="utf-8")
+def live_problems():
+    """Differences between the published Q123 workflows in n8n and workflows/*.json (empty list = match).
+    Also used by tests/runner.py at the end of every run (third red team, finding 12)."""
     import build
     from n8n_api import Api, load_env
     env, api, docs = load_env(), Api(), local_docs()
@@ -90,8 +91,13 @@ def main():
             wf_ids[key] = w["id"]
             live[key] = api.request("GET", f"/workflows/{w['id']}")
     problems = [f"credential missing in n8n: {k}" for k, v in creds.items() if v == "missing"]
-    problems += compare(docs, live, creds, wf_ids, env)
-    print(f"committed workflow hash {workflow_hash(docs)}")
+    return problems + compare(docs, live, creds, wf_ids, env)
+
+
+def main():
+    sys.stdout.reconfigure(encoding="utf-8")
+    problems = live_problems()
+    print(f"committed workflow hash {workflow_hash(local_docs())}")
     for p in problems:
         print("DIFF " + p)
     print("n8n runs the committed workflows" if not problems else f"{len(problems)} differences")

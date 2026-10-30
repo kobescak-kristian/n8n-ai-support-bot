@@ -21,7 +21,7 @@ When sources disagree: an adopted ADR outranks the text it amends;
 documents state intent, implementation and tests state behaviour, and a
 gap between them is a finding to surface, not something to silently
 reconcile; `STATE.md` is the status surface; if canonical sources
-conflict, stop and ask the owner.
+conflict, stop and ask Kristian.
 
 ## Task routing
 
@@ -34,7 +34,7 @@ Starting points, not exhaustive reading lists.
 | Plan, scope, decisions | `BLUEPRINT.md` |
 | Test cases, expected results, behaviour rules | `tests/CASES.md`, `tests/make_cases.py`, `tests/cases/`, `tests/kb/` |
 | Grading and eval gate, recorded runs | `tests/grading.py`, `evals/eval_config.yaml`, `evals/RESULTS.md` |
-| Workflows (generated) | `workflows/build.py`, `workflows/bot_js.py`; `--push` loads them into local n8n through `tools/n8n_api.py` |
+| Workflows (generated) | `workflows/build.py`, `workflows/bot_js.py`; `--push` loads them into n8n through `tools/n8n_api.py` |
 | Test runs | `tests/runner.py` (with `tests/mock_whatsapp.py`); knowledge base into Supabase: `tools/index_kb.py`; Supabase setup: `supabase/setup.sql` |
 | Documentation / README / ADR work | the artifact itself; `.githooks/validate_artifacts.py` for enforced structure |
 
@@ -53,7 +53,7 @@ Starting points, not exhaustive reading lists.
 - The eval gate is fixed before the build; never change a case, expected
   result, KB article, grading rule or threshold to make a run pass (new dated version only).
 - The hold-out cases are written by a separate session. A building
-  session never opens the q123-holdout folder before the first gated run.
+  session never opens the hold-out folder before the first gated run.
 - Made-up data only (company, people, orders); no real business accounts.
 - This file is an instruction surface, not a security boundary.
 

@@ -431,6 +431,7 @@ def cmd_run(a):
     graded, crit, metrics = grade_run(cases, records, report, kb)
     summary = {"label": a.label, "date": time.strftime("%Y-%m-%d %H:%M"), "seconds": round(time.time() - t0),
                "cases": len(cases), "hold_out": bool(a.data), "only": a.only or None, "critical_case_runs": crit,
+               **build_record(report),
                "code_metrics": metrics, "cases_result": {k: {"passed": v["passed"], "misses": v["misses"]}
                                                           for k, v in graded.items()},
                "groups": {c["id"]: c["group"] for c in cases}}
@@ -446,10 +447,33 @@ def cmd_run(a):
     return 0
 
 
-def score(summaries, thresholds, holdout2_cases=None):
+def build_record(report):
+    """v6 (second and third red teams, finding 12): what each run ran on: a run ID, the local workflow files' hash,
+    whether n8n runs exactly those files (checked at the end of the run), the git commit, whether workflows/, tests/
+    (run results excepted) or the eval config had uncommitted or new files, and the models in the log rows."""
+    import subprocess
+    import uuid
+    import check_n8n_workflows as cnw
+    git = lambda *a: subprocess.run(["git", "-C", str(ROOT.parent), *a], capture_output=True, text=True).stdout.strip()
+    try:
+        n8n_problems = cnw.live_problems()
+    except Exception as e:  # noqa: BLE001 - recorded, and score() then calls the run invalid
+        n8n_problems = [f"check failed: {type(e).__name__}"]
+    return {"run_id": uuid.uuid4().hex, "workflows_hash": cnw.workflow_hash(cnw.local_docs()),
+            "n8n_matches": not n8n_problems, "git_commit": git("rev-parse", "HEAD"),
+            "git_dirty": bool(git("status", "--porcelain", "--", "workflows", "tests", "evals/eval_config.yaml",
+                                  ":(exclude)tests/results")),
+            "models": sorted({r.get("model") for r in report.get("log", []) if r.get("model")})}
+
+
+def score(summaries, thresholds, holdout2_cases=None, holdout_seen_cases=None):
     """Gate verdict over runs (list of summary dicts). Pure function; tested in tests/test_runner.py.
     v5 (red team 21): every run has the same case IDs and no --only filter; with holdout2_cases (the count in
-    evals/holdout2_commitment.json) every run holds exactly that many HN- cases; a code metric with 0 items fails."""
+    evals/holdout2_commitment.json) every run holds exactly that many HN- cases; a code metric with 0 items fails.
+    v6 (second and third red teams, finding 12): every run has its own label and run ID, the same recorded
+    workflow hash, git commit and models (none missing), n8n ran those workflows, and no tracked file had
+    uncommitted changes; with holdout_seen_cases every run holds that many HO- cases; a code metric missing from a
+    run fails."""
     groups = summaries[0]["groups"]
     setup = []
     if any(set(s["groups"]) != set(groups) for s in summaries):
@@ -458,10 +482,23 @@ def score(summaries, thresholds, holdout2_cases=None):
         setup.append("a run used --only")
     if holdout2_cases is not None and sum(1 for k in groups if k.startswith("HN-")) != holdout2_cases:
         setup.append(f"hold-out 2 cases in the runs: {sum(1 for k in groups if k.startswith('HN-'))}, commitment: {holdout2_cases}")
+    if holdout_seen_cases is not None and sum(1 for k in groups if k.startswith("HO-")) != holdout_seen_cases:
+        setup.append(f"hold-out (seen) cases in the runs: {sum(1 for k in groups if k.startswith('HO-'))}, expected: {holdout_seen_cases}")
+    for key, what in (("label", "run label"), ("run_id", "run ID")):
+        if any(not s.get(key) for s in summaries) or len({s.get(key) for s in summaries}) != len(summaries):
+            setup.append(f"a {what} is missing or used twice")
+    for key, what in (("workflows_hash", "workflow version"), ("git_commit", "git commit"), ("models", "model list")):
+        if any(not s.get(key) for s in summaries) or len({json.dumps(s.get(key)) for s in summaries}) > 1:
+            setup.append(f"the {what} is not recorded or differs between runs")
+    if any(s.get("n8n_matches") is not True for s in summaries):
+        setup.append("n8n did not run the recorded workflows (or it was not checked)")
+    if any(s.get("git_dirty") is not False for s in summaries):
+        setup.append("a run was made with uncommitted changes (or it was not recorded)")
     rate = [k for k, g in groups.items() if g == "rate"]
     misses = [k for k in rate if not all(s["cases_result"].get(k, {}).get("passed") for s in summaries)]
     crit = sum(s["critical_case_runs"] for s in summaries)
-    code_bad = sorted({m for s in summaries for m, v in s["code_metrics"].items() if not v[2] or v[1] != v[2]})
+    code_bad = sorted({m for s in summaries for m, v in s["code_metrics"].items() if not v[2] or v[1] != v[2]} |
+                      {m for s in summaries for m in CODE_METRICS if m not in s["code_metrics"]})
     changed = sorted(k for k in groups if len({s["cases_result"].get(k, {}).get("passed") for s in summaries}) > 1)
     if setup:
         verdict = "INVALID RUN"
@@ -482,7 +519,8 @@ def cmd_score(a):
     sums = [json.loads((ROOT / "results" / f"{l}.json").read_text(encoding="utf-8")) for l in a.labels]
     commit = ROOT.parent / "evals" / "holdout2_commitment.json"
     h2 = json.loads(commit.read_text(encoding="utf-8"))["case_count"] if commit.exists() else None
-    r = score(sums, th, h2)
+    seen = len(json.loads((ROOT / "holdout" / "cases.json").read_text(encoding="utf-8"))["cases"])
+    r = score(sums, th, h2, seen)
     print(json.dumps(r, indent=1))
     return 0
 

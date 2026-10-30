@@ -2,7 +2,7 @@
 
 The API key lives in the git-ignored `.env` at the repository root
 (N8N_URL, N8N_API_KEY; see .env.example). It is read here and never printed.
-Shared-n8n rules: only workflows whose name starts with "Q123 " are touched.
+Only workflows whose name starts with "Q123 " are touched.
 """
 import json
 import os
