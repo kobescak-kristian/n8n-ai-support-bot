@@ -153,3 +153,13 @@ miss analysis | newly broken cases | changed variables vs previous entry | cost.
 - Reply-check blocks that went to a person where that is also allowed (not misses): F1-06 (the customer wrote "sixty" and "forty" as words; the bot's correct reply said 60 and 40 in digits, which the number check cannot match to words).
 - Secondary (reported, not gated): 125 log rows; median 2.5 s per reply that called Claude; AI cost $0.027.
 - Next: the second build red team (19 findings, run on the code before this run) led to v1.11; the gated series waits for v1.11, its checks and the third red team.
+
+### visible-7 — 2026-10-30 21:28-21:37, development run (not gated)
+
+- Config: eval config v7 · workflows v1.12 (commit 63f4b97, loaded into n8n 2026-10-30 about 20:20; `tests/check_n8n_workflows.py` exit 0: n8n runs the committed workflows; the run record shows the same workflow hash 5523ceed... and a clean working tree) · claude-haiku-5-5 + text-embedding-3-small · visible.json 107 cases (no hold-out) · runner exit 0.
+- Scores: rate 57/57; critical case-runs 0; every code metric 1.0 (log_complete 114/114, handoff_complete 36/36, dont_know_offer 8/8, citation_integrity 51/51, human_mode_silent 1/1, agent_reply_exact 4/4, close_returns 1/1, whatsapp_adapter 10/10, outage_handled 6/6, index_public_only 1/1, code_cases_pass 21/21); 508 s.
+- Misses: none.
+- Reply-check blocks that went to a person where that is also allowed (not misses): F1-06, same cause as in visible-6 (the customer wrote "sixty" as a word; the bot's correct reply said 60 in digits).
+- Changed vs visible-6: workflows v1.10 -> v1.12 and eval config v5 -> v7 (fixes from the second, third and last build red team and the short red team on v1.12); every case has the same result as in visible-6.
+- Secondary (reported, not gated): 125 log rows; median 2.4 s per reply that called Claude (95 replies); AI cost $0.027.
+- Next: the preflight (evals/PREFLIGHT.md), a 2-case dry run and the gated series on hold-out 2.
