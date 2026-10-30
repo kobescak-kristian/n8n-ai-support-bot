@@ -49,6 +49,9 @@ const PROMISE_DONE_RE = new RegExp([
   String.raw`\b(he|hemos|han) (ya )?(\S+ ){0,3}(reembolsad|aprobad|cancelad|anulad)[oa]s?\b`, String.raw`\b(devolvemos|reembolsamos)\b`,
   String.raw`\b(habe|haben|hat) (\S+ ){0,5}(erstattet|zurückerstattet|genehmigt|storniert|gutgeschrieben)\b`,
   String.raw`\b(wir erstatten|erstatten wir)\b`,
+  // v1.12 (last red team, finding 4)
+  String.raw`\b(i|we)('ll| will| can)? make an exception\b`,
+  String.raw`\b(i|we)('ve| have) arranged (a |an |the |your )?(free|refund|pickup|collection|exception|discount|credit|replacement)\b`,
 ].join('|'), 'i');
 const PROMISE_POLICY_RE = new RegExp([
   String.raw`\b(refund|discount|exception|claim) (is|was|has been) (now )?(approved|applied)\b`,
@@ -62,6 +65,13 @@ const PROMISE_POLICY_RE = new RegExp([
   String.raw`(?<![a-zà-ÿ])(è|e') (stat[oa] )?(annullat|rimborsat|stornat)[oa]\b`,
   String.raw`\b(ha sido|han sido|est[áa]|fue) (cancelad|anulad|reembolsad|aprobad)[oa]s?\b`,
   String.raw`\b(ist|wurde|wurden) (\S+ ){0,5}(erstattet|zurückerstattet|genehmigt|storniert|gutgeschrieben)\b`,
+  // v1.12 (last red team, finding 4; short red team: these forms, the future refund forms too, are policy-like, so they
+  // do not count after a condition; "you'll receive a refund" and "returned in full" are left out because the shop's
+  // own articles say them)
+  String.raw`(?<!(not sure|unsure|don't think|do not think)( that)? )\b(we|i) can (refund|waive|reimburse)\b`,
+  String.raw`\b(is|are) cancell?ed for you\b`, String.raw`\bbekommen (sie |du )?(ihr|dein) geld zurück\b`,
+  String.raw`\b(reembolsaremos|devolveremos)\b`, String.raw`\b(rimborseremo|restituiremo)\b`,
+  String.raw`\bwerden (\S+ ){0,4}(erstatten|zurückerstatten)\b`,
 ].join('|'), 'i');
 const CONDITION_RE = /\b(if|unless|until|whether|once|after|before|when|can'?t|cannot|unable|not able|se|wenn|falls|bis|sobald|nachdem|bevor|ob|quando|finch[ée]|dopo|prima|cuando|hasta|despu[ée]s|antes|non posso|no puedo|kann nicht|können nicht)\b|\bsi\b(?!,)/i;
 function hasPromise(reply) {
@@ -83,6 +93,9 @@ const SOURCE_CLAIM = [
   /<\/?[a-z_][\w-]*[^<>]*>/i, /\b(article|articles)\b/i,
   // v1.11: "Artikel / articolo / artículo" alone mean "item"; they count with an article ID or "says" (red team 3)
   /\b[AI]\d{2}\b/, /\b(artikel|articol[oi]|art[ií]culos?)\b.{0,60}\b(dice|dicono|steht|stehen|sagt|indica|says)\b/i,
+  // v1.12 (last red team, finding 2): "according to the article" and more verbs after it
+  /\b(secondo|laut|gem[äa](ß|ss)|seg[uú]n)\b.{0,30}\b(artikel|articol[oi]|art[ií]culos?)\b/i,
+  /\b(artikel|articol[oi]|art[ií]culos?)\b.{0,60}\b(scritt[oi]|riporta(no)?|parla(no)? di|hei(ß|ss)t es|pone|menciona(n)?)\b/i,
   /\b(hilfeartikel|articol[oi] (della |di |dell')?(guida|assistenza|supporto)|art[ií]culos? de (ayuda|soporte))\b/i,
   /\b(help (center|centre|page|desk)|knowledge base|faq|terms and conditions|official policy|policy update|price list)\b/i,
   /\b(system|admin|assistant|developer|instruction|instructions|staff note|staff notes|internal note)s?\s*:/i,
@@ -91,8 +104,14 @@ const SOURCE_CLAIM = [
   /\b(your|the shop's|harbour's) (website|web site|site|page|ad|advert|flyer|email|e-mail) (says|said|states|shows)\b/i,
 ];
 const isSourceClaim = (t) => SOURCE_CLAIM.some((r) => r.test(fold(t)));
-// the customer's messages that may back a fact in the reply (their own order numbers, dates, prices they mention)
-const customerFacts = (texts) => texts.filter((t) => !isSourceClaim(t)).join('\n');
+// the customer's messages that may back a fact in the reply (their own order numbers, dates, prices they mention).
+// v1.12 (last red team, finding 5): a number in a quoted message still counts when a retrieved article has it too
+// (Finalize passes only the cited and the archived retrieved articles: short red team finding M1).
+const customerFacts = (texts, retrieved = '') => {
+  const inRetrieved = numbers(retrieved);
+  const quoted = [...numbers(texts.filter(isSourceClaim).join('\n'))].filter((n) => inRetrieved.has(n));
+  return [...texts.filter((t) => !isSourceClaim(t)), ...quoted].join('\n');
+};
 
 // Checks before send (CASES.md rule 8). sources = text of the cited articles; customer = customerFacts() of the
 // customer's messages, which may back a number only (v1.11, red team 2 finding 5: never an e-mail, link or code)
@@ -166,6 +185,15 @@ const SAFETY = [
   /\bdescarga el[eé]ctrica\b/i, /\bme dio (una )?descarga\b/i, /\b(short circuit|cortocircuito|kurzschluss)\b/i,
   /\b(si [èe]|mi sono|ci siamo) (fatt[oa]|fatti) male\b/i, /\b(me he|se ha|se hizo|me hice) (hecho )?da[ñn]o\b/i,
   /\b(tut|tun) (sehr |so )?weh\b/i, /\bme duele\b/i, /\bmi fa male\b/i, /\b(my \w+|it) hurts\b/i,
+  // v1.12 (last red team, finding 1): blood, fainting, car hits, broken limbs, bulging batteries, fumes, hot chargers
+  /\bblood\b/i, /\b(passed out|fainted|fainting|knocked out|concussion)\b/i,
+  /\b(hit by a (car|van|truck|bus|lorry)|(a|the) (car|van|truck|bus|lorry) hit)\b/i,
+  /\b(my|his|her|their|your|our|[a-z]+'s) (arm|leg|wrist|ankle|collarbone|hand|finger|rib|nose)s? (is|are|might be|may be|could be) broken\b/i,
+  /\b(bulging|puffed up|puffing up)\b/i, /\bfumes?\b/i, /\b(geschwollen|aufgequollen|verbrannt|verschmort)\b/i,
+  // (short red team: "gomme gonfiate", "precios inflados" are tyres and prices, so only near a battery or charger word)
+  /\b(batteri[ae]|akku|caricatore)\b.{0,40}\bgonfiat[oaie]\b/i,
+  /\b(bater[ií]as?|cargador)\b.{0,40}\b(inflad|abombad)[oa]s?\b|\babombad[oa]s?\b/i,
+  /\b(charger|plug|cable|adapter|caricatore|presa|cavo|cargador|enchufe|ladeger[äa]t|stecker|kabel|netzteil)\b.{0,40}\b(hot|calda|caldo|caliente|scotta|hei(ß|ss))(?![a-zäöüß])/i,
 ];
 const isUnsafe = (t) => SAFETY.some((r) => r.test(t));
 
@@ -220,7 +248,7 @@ PREP_SEARCH = LIB + r"""
 const s = $('Pre-check').first().json.state;
 const r = $('Embed question').first().json;
 const emb = r && r.statusCode === 200 && r.body && r.body.data ? r.body.data[0].embedding : null;
-return [{ json: { ok: !!emb, url: s.simulate === 'supabase_down' ? DEAD : '__SUPABASE_URL__/rest/v1/rpc/q123_match_chunks',
+return [{ json: { ok: !!emb, url: s.simulate === 'supabase_down' ? DEAD : '__SUPABASE_URL__/rest/v1/rpc/support_bot_match_chunks',
                   body: { query_embedding: emb || [], match_count: 8, filter: {} }, timeout_ms: 20000,
                   embed_tokens: r && r.body && r.body.usage ? r.body.usage.total_tokens : 0 } }];
 """
@@ -299,7 +327,7 @@ else {
         if (route !== 'handoff') {
           const ids = new Set(retrieved.map((r) => r.id));
           const citedText = srch.found.filter((a) => cited.includes(a.id)).map((a) => a.text).join('\n');
-          const fails = replyChecks(reply, citedText, customerFacts(s.customer_texts));
+          const fails = replyChecks(reply, citedText, customerFacts(s.customer_texts, srch.found.filter((a) => cited.includes(a.id) || a.status === 'archived').map((a) => a.text).join('\n')));
           if (cited.some((c) => !ids.has(c))) fails.push('cited an article that was not retrieved');
           if (route === 'answer' && !cited.length) fails.push('answer without a cited article');
           if (fails.length) { checks.fail = fails; checks.blocked_reply = reply; route = 'handoff'; reason = 'check_failed'; reply = ''; cited = []; }
@@ -505,7 +533,7 @@ const c = $('Public articles only').first().json;
 const e = $('Embed articles').first().json;
 const data = e && e.statusCode === 200 ? e.body.data : null;
 if (!data || data.length !== c.chunks.length) return [{ json: { ok: false, error: 'embedding failed', url: '', body: [] } }];
-return [{ json: { ok: true, url: '__SUPABASE_URL__/rest/v1/q123_kb_chunks',
+return [{ json: { ok: true, url: '__SUPABASE_URL__/rest/v1/support_bot_kb_chunks',
   body: c.chunks.map((ch, i) => ({ ...ch, embedding: data[i].embedding })), timeout_ms: 60000 } }];
 """
 

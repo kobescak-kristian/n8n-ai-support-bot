@@ -1,5 +1,5 @@
 {
- "name": "Q123 Setup: create tables",
+ "name": "n8n-support-bot: Setup - create tables",
  "nodes": [
   {
    "id": "e2c7078e-0a93-5339-85d4-682653122fdc",
@@ -26,8 +26,8 @@
    "webhookId": "4c161940-e8b1-5142-9245-5918f6da40d9"
   },
   {
-   "id": "79c0afd5-2ca9-5daf-a23b-1e765cc677f7",
-   "name": "Create q123_messages",
+   "id": "7159c0ed-65d4-51c5-a8da-3f11516b197f",
+   "name": "Create support_bot_messages",
    "type": "n8n-nodes-base.dataTable",
    "typeVersion": 1.1,
    "position": [
@@ -37,7 +37,7 @@
    "parameters": {
     "resource": "table",
     "operation": "create",
-    "tableName": "q123_messages",
+    "tableName": "support_bot_messages",
     "columns": {
      "column": [
       {
@@ -67,8 +67,8 @@
    "onError": "continueRegularOutput"
   },
   {
-   "id": "4df6535f-1f48-5ba4-ad2a-3aefbd077bfb",
-   "name": "Create q123_log",
+   "id": "44ed9cd5-d0a9-5617-8cee-c0d9c6415fe5",
+   "name": "Create support_bot_log",
    "type": "n8n-nodes-base.dataTable",
    "typeVersion": 1.1,
    "position": [
@@ -78,7 +78,7 @@
    "parameters": {
     "resource": "table",
     "operation": "create",
-    "tableName": "q123_log",
+    "tableName": "support_bot_log",
     "columns": {
      "column": [
       {
@@ -200,8 +200,8 @@
    "onError": "continueRegularOutput"
   },
   {
-   "id": "2e7c83d1-6a4e-5b52-96d9-0e6002be2a49",
-   "name": "Create q123_agent",
+   "id": "badf9d39-fed2-5867-962a-d9632dee6d84",
+   "name": "Create support_bot_agent",
    "type": "n8n-nodes-base.dataTable",
    "typeVersion": 1.1,
    "position": [
@@ -211,7 +211,7 @@
    "parameters": {
     "resource": "table",
     "operation": "create",
-    "tableName": "q123_agent",
+    "tableName": "support_bot_agent",
     "columns": {
      "column": [
       {
@@ -253,8 +253,8 @@
    "onError": "continueRegularOutput"
   },
   {
-   "id": "acbeef80-d6af-56aa-af2a-be8398f7b832",
-   "name": "Create q123_seen",
+   "id": "f9ccb064-ba18-5786-8639-37d086e01cd7",
+   "name": "Create support_bot_seen",
    "type": "n8n-nodes-base.dataTable",
    "typeVersion": 1.1,
    "position": [
@@ -264,7 +264,7 @@
    "parameters": {
     "resource": "table",
     "operation": "create",
-    "tableName": "q123_seen",
+    "tableName": "support_bot_seen",
     "columns": {
      "column": [
       {
@@ -282,8 +282,8 @@
    "onError": "continueRegularOutput"
   },
   {
-   "id": "f3a39a9e-2c86-54b2-8551-cb69edc12527",
-   "name": "Create q123_settings",
+   "id": "399edd6f-ec07-5f15-8e89-52fd09dce456",
+   "name": "Create support_bot_settings",
    "type": "n8n-nodes-base.dataTable",
    "typeVersion": 1.1,
    "position": [
@@ -293,7 +293,7 @@
    "parameters": {
     "resource": "table",
     "operation": "create",
-    "tableName": "q123_settings",
+    "tableName": "support_bot_settings",
     "columns": {
      "column": [
       {
@@ -333,58 +333,58 @@
    "main": [
     [
      {
-      "node": "Create q123_messages",
+      "node": "Create support_bot_messages",
       "type": "main",
       "index": 0
      }
     ]
    ]
   },
-  "Create q123_messages": {
+  "Create support_bot_messages": {
    "main": [
     [
      {
-      "node": "Create q123_log",
+      "node": "Create support_bot_log",
       "type": "main",
       "index": 0
      }
     ]
    ]
   },
-  "Create q123_log": {
+  "Create support_bot_log": {
    "main": [
     [
      {
-      "node": "Create q123_agent",
+      "node": "Create support_bot_agent",
       "type": "main",
       "index": 0
      }
     ]
    ]
   },
-  "Create q123_agent": {
+  "Create support_bot_agent": {
    "main": [
     [
      {
-      "node": "Create q123_seen",
+      "node": "Create support_bot_seen",
       "type": "main",
       "index": 0
      }
     ]
    ]
   },
-  "Create q123_seen": {
+  "Create support_bot_seen": {
    "main": [
     [
      {
-      "node": "Create q123_settings",
+      "node": "Create support_bot_settings",
       "type": "main",
       "index": 0
      }
     ]
    ]
   },
-  "Create q123_settings": {
+  "Create support_bot_settings": {
    "main": [
     [
      {

@@ -1,5 +1,5 @@
 {
- "name": "Q123 Entry: WhatsApp",
+ "name": "n8n-support-bot: Entry - WhatsApp",
  "nodes": [
   {
    "id": "7c232eff-7c5a-5108-9a8a-93c5c8ee9a9b",
@@ -171,7 +171,7 @@
     "dataTableId": {
      "__rl": true,
      "mode": "name",
-     "value": "q123_seen"
+     "value": "support_bot_seen"
     },
     "returnAll": true
    },
@@ -192,7 +192,7 @@
     "dataTableId": {
      "__rl": true,
      "mode": "name",
-     "value": "q123_settings"
+     "value": "support_bot_settings"
     },
     "returnAll": true
    },
@@ -291,7 +291,7 @@
     "dataTableId": {
      "__rl": true,
      "mode": "name",
-     "value": "q123_seen"
+     "value": "support_bot_seen"
     },
     "columns": {
      "mappingMode": "autoMapInputData",

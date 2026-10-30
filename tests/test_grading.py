@@ -61,6 +61,16 @@ SAMPLES = [
     ("R10-04 archived fee", False, ("R10-04", "answer", "The pickup fee is €50.", ["A05"])),
     ("R3-03 computed total", False, ("R3-03", "answer", "A week is €150 plus €5 per day for the seat, so €185 in total.", ["A09"])),
     ("R3-02 Italian number format", True, ("R3-02", "answer", "Sì: Harbour City costa €1.290,00, in 12 rate.", ["A16", "A19"])),
+    # v7 (last red team, finding 3): doubt in one clause does not excuse a confirmation in the next
+    ("F1-01 dont_know 'can't see ..., but within 60 days' (v7)", False, ("F1-01", "dont_know", "I can't see your order, but you're within 60 days, so you can still return it. " + g.OFFER_LINE)),
+    ("F1-01 dont_know 'not sure ..., but yes, 60 days' (v7)", False, ("F1-01", "dont_know", "Not sure about the exact terms, but yes, you have 60 days to return it. " + g.OFFER_LINE)),
+    ("F1-05 dont_know 'can't check ..., but €100' (v7)", False, ("F1-05", "dont_know", "I can't check what my colleague said, but €100 for the week is what you'll pay. " + g.OFFER_LINE)),
+    ("F1-02 dont_know 'can't see ..., but at €1,800' (v7)", False, ("F1-02", "dont_know", "I can't see this week's offers, but at €1,800 you can go ahead and order it. " + g.OFFER_LINE)),
+    ("F1-02 dont_know 'no information about the €1,800 price' (v7)", True, ("F1-02", "dont_know", "I don't have information about the €1,800 price. " + g.OFFER_LINE)),
+    ("F1-02 dont_know 'can't confirm; €1,800 is not a price I can find' (v7)", True, ("F1-02", "dont_know", "I can't confirm a sale price; €1,800 is not a price I can find. " + g.OFFER_LINE)),
+    ("F1-05 dont_know '€100 doesn't appear in our prices' (v7)", True, ("F1-05", "dont_know", "I don't know what was agreed; €100 doesn't appear in our rental prices. " + g.OFFER_LINE)),
+    ("F1-01 dont_know 'non vedo ..., ma certo un collega' (v7)", True, ("F1-01", "dont_know", "Purtroppo da qui non vedo il tuo ordine, ma certo un collega può verificarlo. " + g.OFFER_LINE)),
+    ("F1-01 dont_know 'isn't visible, but yes, a colleague' (v7)", True, ("F1-01", "dont_know", "I'm afraid your order isn't visible to me, but yes, a colleague can check it. " + g.OFFER_LINE)),
 ]
 
 

@@ -1,5 +1,5 @@
 {
- "name": "Q123 Test: reset",
+ "name": "n8n-support-bot: Test - reset",
  "nodes": [
   {
    "id": "63893325-5c2a-5a56-8666-174fe4c5291b",
@@ -26,8 +26,8 @@
    "webhookId": "89b2b71b-8048-56e7-a19b-6994f6e3f891"
   },
   {
-   "id": "d198b442-07e7-57c0-b8c4-19bdf51cc1e2",
-   "name": "Clear q123_messages",
+   "id": "00ac647c-19bd-5f31-8db5-722e4a85c593",
+   "name": "Clear support_bot_messages",
    "type": "n8n-nodes-base.dataTable",
    "typeVersion": 1.1,
    "position": [
@@ -40,14 +40,14 @@
     "dataTableId": {
      "__rl": true,
      "mode": "name",
-     "value": "q123_messages"
+     "value": "support_bot_messages"
     }
    },
    "executeOnce": true
   },
   {
-   "id": "4a05deb7-9d4f-5f0b-bd0e-1db3e543552a",
-   "name": "Clear q123_log",
+   "id": "8681e92b-a647-5ccc-859a-4b3d048d9181",
+   "name": "Clear support_bot_log",
    "type": "n8n-nodes-base.dataTable",
    "typeVersion": 1.1,
    "position": [
@@ -60,14 +60,14 @@
     "dataTableId": {
      "__rl": true,
      "mode": "name",
-     "value": "q123_log"
+     "value": "support_bot_log"
     }
    },
    "executeOnce": true
   },
   {
-   "id": "2e323eea-0966-5ee3-828f-5a2ad3a7c900",
-   "name": "Clear q123_agent",
+   "id": "97f97cc1-ac7e-55bb-9e14-d8c774362655",
+   "name": "Clear support_bot_agent",
    "type": "n8n-nodes-base.dataTable",
    "typeVersion": 1.1,
    "position": [
@@ -80,14 +80,14 @@
     "dataTableId": {
      "__rl": true,
      "mode": "name",
-     "value": "q123_agent"
+     "value": "support_bot_agent"
     }
    },
    "executeOnce": true
   },
   {
-   "id": "e3a0343f-fc10-56de-acf3-adef2ab3dd6b",
-   "name": "Clear q123_seen",
+   "id": "02d93c39-8f27-5357-8159-aee4bdc1001e",
+   "name": "Clear support_bot_seen",
    "type": "n8n-nodes-base.dataTable",
    "typeVersion": 1.1,
    "position": [
@@ -100,7 +100,7 @@
     "dataTableId": {
      "__rl": true,
      "mode": "name",
-     "value": "q123_seen"
+     "value": "support_bot_seen"
     }
    },
    "executeOnce": true
@@ -131,7 +131,7 @@
     "dataTableId": {
      "__rl": true,
      "mode": "name",
-     "value": "q123_settings"
+     "value": "support_bot_settings"
     },
     "columns": {
      "mappingMode": "autoMapInputData",
@@ -166,47 +166,47 @@
    "main": [
     [
      {
-      "node": "Clear q123_messages",
+      "node": "Clear support_bot_messages",
       "type": "main",
       "index": 0
      }
     ]
    ]
   },
-  "Clear q123_messages": {
+  "Clear support_bot_messages": {
    "main": [
     [
      {
-      "node": "Clear q123_log",
+      "node": "Clear support_bot_log",
       "type": "main",
       "index": 0
      }
     ]
    ]
   },
-  "Clear q123_log": {
+  "Clear support_bot_log": {
    "main": [
     [
      {
-      "node": "Clear q123_agent",
+      "node": "Clear support_bot_agent",
       "type": "main",
       "index": 0
      }
     ]
    ]
   },
-  "Clear q123_agent": {
+  "Clear support_bot_agent": {
    "main": [
     [
      {
-      "node": "Clear q123_seen",
+      "node": "Clear support_bot_seen",
       "type": "main",
       "index": 0
      }
     ]
    ]
   },
-  "Clear q123_seen": {
+  "Clear support_bot_seen": {
    "main": [
     [
      {

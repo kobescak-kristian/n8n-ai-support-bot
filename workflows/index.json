@@ -1,5 +1,5 @@
 {
- "name": "Q123 Index: knowledge base",
+ "name": "n8n-support-bot: Index - knowledge base",
  "nodes": [
   {
    "id": "8aaa8e40-f519-56d0-ac74-19d5aa51c908",
@@ -48,7 +48,7 @@
     0
    ],
    "parameters": {
-    "jsCode": "return [{ json: { url: '__SUPABASE_URL__/rest/v1/q123_kb_chunks?id=gt.0', body: {}, timeout_ms: 20000 } }];\n"
+    "jsCode": "return [{ json: { url: '__SUPABASE_URL__/rest/v1/support_bot_kb_chunks?id=gt.0', body: {}, timeout_ms: 20000 } }];\n"
    }
   },
   {
@@ -146,7 +146,7 @@
     0
    ],
    "parameters": {
-    "jsCode": "const c = $('Public articles only').first().json;\nconst e = $('Embed articles').first().json;\nconst data = e && e.statusCode === 200 ? e.body.data : null;\nif (!data || data.length !== c.chunks.length) return [{ json: { ok: false, error: 'embedding failed', url: '', body: [] } }];\nreturn [{ json: { ok: true, url: '__SUPABASE_URL__/rest/v1/q123_kb_chunks',\n  body: c.chunks.map((ch, i) => ({ ...ch, embedding: data[i].embedding })), timeout_ms: 60000 } }];\n"
+    "jsCode": "const c = $('Public articles only').first().json;\nconst e = $('Embed articles').first().json;\nconst data = e && e.statusCode === 200 ? e.body.data : null;\nif (!data || data.length !== c.chunks.length) return [{ json: { ok: false, error: 'embedding failed', url: '', body: [] } }];\nreturn [{ json: { ok: true, url: '__SUPABASE_URL__/rest/v1/support_bot_kb_chunks',\n  body: c.chunks.map((ch, i) => ({ ...ch, embedding: data[i].embedding })), timeout_ms: 60000 } }];\n"
    }
   },
   {

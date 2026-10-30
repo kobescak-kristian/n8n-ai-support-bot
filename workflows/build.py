@@ -2,12 +2,14 @@
 
 python workflows/build.py           -> workflows/*.json (placeholders: no credential IDs, no Supabase URL, no secrets)
 python workflows/build.py --push    -> also creates the test-only credentials from the git-ignored .env (webhook keys,
-                                       form login, WhatsApp test token and app secret), creates/updates every Q123
+                                       form login, WhatsApp test token and app secret), creates/updates every bot
                                        workflow in n8n through the n8n API, fills credential and workflow IDs by
                                        name, and publishes them. Hand-made credentials (Anthropic, OpenAI, Supabase,
                                        Slack) must already exist with their standard names.
 
-Only Q123-prefixed workflows, q123_* data tables and /webhook/q123-* paths are touched. Never restarts or reconfigures n8n. The workflow logic lives here and in bot_js.py; the JSON files are build output.
+Only workflows named "n8n-support-bot: ...", support_bot_* data tables and /webhook/q123-* paths are touched
+(the webhook paths and the .env key names keep their first prefix q123: the test runner calls most of them,
+and all webhook paths keep one prefix). Never restarts or reconfigures n8n. The workflow logic lives here and in bot_js.py; the JSON files are build output.
 """
 import json
 import sys
@@ -38,19 +40,19 @@ TEST_CREDS = {
     "waSecret": ("crypto", f"WhatsApp app secret {SHORT} (test)", lambda e: {"hmacSecret": e["Q123_WA_TEST_SECRET"]}),
 }
 TABLES = {
-    "q123_messages": [("conversation_id", "string"), ("role", "string"), ("text", "string"), ("at", "string"),
+    "support_bot_messages": [("conversation_id", "string"), ("role", "string"), ("text", "string"), ("at", "string"),
                       ("run_label", "string")],
-    "q123_log": [("log_id", "string"), ("ts", "string"), ("run_label", "string"), ("channel", "string"),
+    "support_bot_log": [("log_id", "string"), ("ts", "string"), ("run_label", "string"), ("channel", "string"),
                  ("conversation_id", "string"), ("message_id", "string"), ("message", "string"), ("route", "string"),
                  ("reason", "string"), ("reply", "string"), ("retrieved", "string"), ("cited", "string"),
                  ("checks", "string"), ("model", "string"), ("tokens_in", "number"), ("tokens_out", "number"),
                  ("cost", "number"), ("seconds", "number"), ("simulated", "boolean"), ("ai_called", "boolean"),
                  ("alert_status", "string"), ("mode_after", "string"), ("slack_ok", "boolean"), ("slack_ts", "string"),
                  ("slack_text", "string"), ("form_link", "string"), ("wa_id", "string"), ("phone_number_id", "string")],
-    "q123_agent": [("at", "string"), ("run_label", "string"), ("conversation_id", "string"), ("action", "string"),
+    "support_bot_agent": [("at", "string"), ("run_label", "string"), ("conversation_id", "string"), ("action", "string"),
                    ("text", "string"), ("channel", "string"), ("delivered", "boolean"), ("wa_message_id", "string")],
-    "q123_seen": [("message_id", "string"), ("at", "string")],
-    "q123_settings": [("run_label", "string"), ("at", "string")],
+    "support_bot_seen": [("message_id", "string"), ("at", "string")],
+    "support_bot_settings": [("run_label", "string"), ("at", "string")],
 }
 
 
@@ -178,11 +180,11 @@ SLACK = ("slackApi", "slackApi")
 
 # ------------------------------------------------------------------------------------------------
 def build_core():
-    w = WF("core", "Q123 Core: answer one message")
+    w = WF("core", "n8n-support-bot: Core - answer one message")
     w.add("Start", "n8n-nodes-base.executeWorkflowTrigger", 1.3, {"inputSource": "passthrough"}, 0)
-    get_rows(w, "Load log rows", "q123_log", 1, key="conversation_id", value="={{ $('Start').first().json.conversation_id }}")
-    get_rows(w, "Load agent rows", "q123_agent", 2, key="conversation_id", value="={{ $('Start').first().json.conversation_id }}")
-    get_rows(w, "Load messages", "q123_messages", 3, key="conversation_id", value="={{ $('Start').first().json.conversation_id }}")
+    get_rows(w, "Load log rows", "support_bot_log", 1, key="conversation_id", value="={{ $('Start').first().json.conversation_id }}")
+    get_rows(w, "Load agent rows", "support_bot_agent", 2, key="conversation_id", value="={{ $('Start').first().json.conversation_id }}")
+    get_rows(w, "Load messages", "support_bot_messages", 3, key="conversation_id", value="={{ $('Start').first().json.conversation_id }}")
     code(w, "Pre-check", J.PRECHECK, 4, executeOnce=True)
     if_true(w, "Needs AI?", "={{ $json.state.next === 'retrieve' }}", 5)
     code(w, "Prepare embedding", J.PREP_EMBED, 6, -1)
@@ -199,9 +201,9 @@ def build_core():
     http(w, "Post to Slack", 16, -1, cred=SLACK, retryOnFail=True, maxTries=2, waitBetweenTries=2000)
     code(w, "After Slack", J.AFTER_SLACK, 17)
     code(w, "Message rows", J.MESSAGE_ROWS, 18)
-    insert(w, "Write messages", "q123_messages", 19)
+    insert(w, "Write messages", "support_bot_messages", 19)
     code(w, "Log row", J.LOG_ROW, 20, executeOnce=True)
-    insert(w, "Write log", "q123_log", 21)
+    insert(w, "Write log", "support_bot_log", 21)
     code(w, "Result", J.RESULT, 22, executeOnce=True)
     w.chain("Start", "Load log rows", "Load agent rows", "Load messages", "Pre-check", "Needs AI?")
     w.link("Needs AI?", "Prepare embedding", 0)
@@ -217,7 +219,7 @@ def build_core():
 
 
 def build_test_entry():
-    w = WF("entry-test", "Q123 Entry: test message")
+    w = WF("entry-test", "n8n-support-bot: Entry - test message")
     webhook(w, "Test message", "POST", "q123-message", 0)
     code(w, "To core input", J.TEST_INPUT, 1)
     call_core(w, "Answer", 2)
@@ -228,7 +230,7 @@ def build_test_entry():
 
 
 def build_chat_entry():
-    w = WF("entry-chat", "Q123 Entry: web chat")
+    w = WF("entry-chat", "n8n-support-bot: Entry - web chat")
     w.add("Web chat", "@n8n/n8n-nodes-langchain.chatTrigger", 1.1, {
         "public": True, "mode": "hostedChat", "authentication": "basicAuth",
         "initialMessages": "Hi! I'm the Harbour E-Bikes assistant. Ask me about rentals, repairs, delivery or returns.",
@@ -242,7 +244,7 @@ def build_chat_entry():
 
 
 def build_whatsapp_entry():
-    w = WF("entry-whatsapp", "Q123 Entry: WhatsApp")
+    w = WF("entry-whatsapp", "n8n-support-bot: Entry - WhatsApp")
     # Meta's verify-token handshake (GET); Meta cannot send our own header, so no Header Auth here
     webhook(w, "WhatsApp handshake", "GET", "q123-whatsapp", 0, -2, auth=None)
     code(w, "Check verify token", J.WA_HANDSHAKE, 1, -2)
@@ -258,13 +260,13 @@ def build_whatsapp_entry():
     code(w, "Verify signature", J.WA_VERIFY, 2, executeOnce=True)
     if_true(w, "Signed?", "={{ $json.ok }}", 3)
     respond(w, "Refuse", "={{ JSON.stringify({ error: 'bad signature' }) }}", 4, 1, code_=401)
-    get_rows(w, "Seen ids", "q123_seen", 4, -1)
-    get_rows(w, "Run label", "q123_settings", 5, -1)
+    get_rows(w, "Seen ids", "support_bot_seen", 4, -1)
+    get_rows(w, "Run label", "support_bot_settings", 5, -1)
     code(w, "New messages", J.WA_NEW, 6, -1, executeOnce=True)
     if_true(w, "Anything new?", "={{ !$json.none }}", 7, -1)
     respond(w, "Nothing new", "={{ JSON.stringify({ ok: true }) }}", 8, 0)
     code(w, "Seen rows", "return $input.all().map((i) => ({ json: { message_id: i.json.message_id, at: new Date().toISOString() } }));", 8, -1)
-    insert(w, "Mark seen", "q123_seen", 9, -1)
+    insert(w, "Mark seen", "support_bot_seen", 9, -1)
     respond(w, "Accept", "={{ JSON.stringify({ ok: true }) }}", 10, -1)
     code(w, "Core input", "return $('New messages').all();", 11, -1, executeOnce=False)
     call_core(w, "Answer", 12, -1, each=True)
@@ -281,24 +283,24 @@ def build_whatsapp_entry():
 
 
 def build_agent():
-    w = WF("agent", "Q123 Agent: reply form")
+    w = WF("agent", "n8n-support-bot: Agent - reply form")
     webhook(w, "Agent page", "GET", "q123-agent", 0, -2, auth="formLogin")
-    get_rows(w, "Conversation messages", "q123_messages", 1, -2, key="conversation_id",
+    get_rows(w, "Conversation messages", "support_bot_messages", 1, -2, key="conversation_id",
              value="={{ String(($('Agent page').first().json.query || {}).c || 'none') }}")
     code(w, "Page", J.AGENT_PAGE, 2, -2, executeOnce=True)
     respond(w, "Show page", "={{ $json.html }}", 3, -2, html=True)
     w.chain("Agent page", "Conversation messages", "Page", "Show page")
     webhook(w, "Agent submit", "POST", "q123-agent-submit", 0, 0, auth="formLogin")
-    get_rows(w, "Conversation log", "q123_log", 1, 0, key="conversation_id",
+    get_rows(w, "Conversation log", "support_bot_log", 1, 0, key="conversation_id",
              value="={{ String(($('Agent submit').first().json.body || {}).conversation_id || 'none') }}")
-    get_rows(w, "Run label", "q123_settings", 2, 0)
+    get_rows(w, "Run label", "support_bot_settings", 2, 0)
     code(w, "Decide agent action", J.AGENT_DECIDE, 3, executeOnce=True)
     if_true(w, "Valid?", "={{ $json.valid }}", 4)
     respond(w, "Refused", "<p>Nothing sent: unknown conversation or empty reply.</p>", 5, 1, code_=400, html=True)
     if_true(w, "WhatsApp reply?", "={{ $json.action === 'reply' && $json.channel === 'whatsapp' }}", 5)
     http(w, "Send WhatsApp reply", 6, -1, cred=("httpHeaderAuth", "waToken"))
     code(w, "Agent row", J.AGENT_ROW, 7, executeOnce=True)
-    insert(w, "Write agent row", "q123_agent", 8)
+    insert(w, "Write agent row", "support_bot_agent", 8)
     respond(w, "Done", "<p>Done. You can close this page.</p>", 9, html=True)
     w.chain("Agent submit", "Conversation log", "Run label", "Decide agent action", "Valid?")
     w.link("Valid?", "WhatsApp reply?", 0)
@@ -310,10 +312,10 @@ def build_agent():
 
 
 def build_index():
-    w = WF("index", "Q123 Index: knowledge base")
+    w = WF("index", "n8n-support-bot: Index - knowledge base")
     webhook(w, "Index request", "POST", "q123-index", 0)
     code(w, "Public articles only", J.INDEX_CHUNKS, 1)
-    code(w, "Delete request", "return [{ json: { url: '__SUPABASE_URL__/rest/v1/q123_kb_chunks?id=gt.0', body: {}, timeout_ms: 20000 } }];", 2)
+    code(w, "Delete request", "return [{ json: { url: '__SUPABASE_URL__/rest/v1/support_bot_kb_chunks?id=gt.0', body: {}, timeout_ms: 20000 } }];", 2)
     http(w, "Delete old chunks", 3, cred=SUPABASE, method="DELETE")
     code(w, "Embed request", "return [$('Public articles only').first()];", 4)
     http(w, "Embed articles", 5, cred=OPENAI)
@@ -327,11 +329,11 @@ def build_index():
 
 
 def build_report():
-    w = WF("report", "Q123 Test: report")
+    w = WF("report", "n8n-support-bot: Test - report")
     webhook(w, "Report request", "POST", "q123-report", 0)
-    get_rows(w, "Log rows", "q123_log", 1)
-    get_rows(w, "Agent rows", "q123_agent", 2)
-    code(w, "Chunks request", "return [{ json: { url: '__SUPABASE_URL__/rest/v1/q123_kb_chunks?select=metadata', timeout_ms: 20000 } }];", 3,
+    get_rows(w, "Log rows", "support_bot_log", 1)
+    get_rows(w, "Agent rows", "support_bot_agent", 2)
+    code(w, "Chunks request", "return [{ json: { url: '__SUPABASE_URL__/rest/v1/support_bot_kb_chunks?select=metadata', timeout_ms: 20000 } }];", 3,
          executeOnce=True)
     http(w, "Index chunks", 4, cred=SUPABASE, method="GET")
     code(w, "Collect", J.REPORT, 5, executeOnce=True)
@@ -341,23 +343,23 @@ def build_report():
 
 
 def build_reset():
-    w = WF("reset", "Q123 Test: reset")
+    w = WF("reset", "n8n-support-bot: Test - reset")
     webhook(w, "Reset request", "POST", "q123-reset", 0)
     names = []
-    for i, t in enumerate(["q123_messages", "q123_log", "q123_agent", "q123_seen"]):
+    for i, t in enumerate(["support_bot_messages", "support_bot_log", "support_bot_agent", "support_bot_seen"]):
         n = f"Clear {t}"
         w.add(n, "n8n-nodes-base.dataTable", 1.1, {"resource": "table", "operation": "clear", "dataTableId": table(t)},
               1 + i, executeOnce=True)
         names.append(n)
     code(w, "Label row", "return [{ json: { run_label: String(($('Reset request').first().json.body || {}).run_label || 'demo'), at: new Date().toISOString() } }];", 5)
-    insert(w, "Write label", "q123_settings", 6)
+    insert(w, "Write label", "support_bot_settings", 6)
     respond(w, "Done", "={{ JSON.stringify({ reset: true }) }}", 7)
     w.chain("Reset request", *names, "Label row", "Write label", "Done")
     return w
 
 
 def build_setup():
-    w = WF("setup", "Q123 Setup: create tables")
+    w = WF("setup", "n8n-support-bot: Setup - create tables")
     webhook(w, "Run once", "POST", "q123-setup-tables", 0)
     names = []
     for i, (t, cols) in enumerate(TABLES.items()):

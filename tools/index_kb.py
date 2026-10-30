@@ -2,7 +2,7 @@
 
 Posts EVERY file in tests/kb/ (the internal I01 too): the workflow itself must keep only
 visibility: public (CASES.md rule 9), and the report checks that it did.
-Run: python tools/index_kb.py   (needs n8n running, the Q123 workflows and Q123_WEBHOOK_KEY in .env)
+Run: python tools/index_kb.py   (needs n8n running, the bot workflows and Q123_WEBHOOK_KEY in .env)
 """
 import json
 import sys

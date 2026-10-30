@@ -14,7 +14,7 @@ An n8n support bot for a small business: it answers customers only from the busi
 |---|---|
 | What the system is and claims | `README.md` |
 | Why a design decision was made | `adr/` |
-| Build status, open decisions, change history | `STATE.md` |
+| Build status, decisions, change history | `STATE.md` |
 | What the implementation actually does | source, tests and configuration inspected together |
 
 When sources disagree: an adopted ADR outranks the text it amends;
@@ -30,8 +30,8 @@ Starting points, not exhaustive reading lists.
 | Task class | Start here |
 |---|---|
 | Understand or explain the system | `README.md` |
-| Current status or open decisions | `STATE.md` |
-| Plan, scope, decisions | `BLUEPRINT.md` |
+| Current status or decisions | `STATE.md` |
+| Scope, design rules, decisions | `README.md` (System), `adr/` |
 | Test cases, expected results, behaviour rules | `tests/CASES.md`, `tests/make_cases.py`, `tests/cases/`, `tests/kb/` |
 | Grading and eval gate, recorded runs | `tests/grading.py`, `evals/eval_config.yaml`, `evals/RESULTS.md` |
 | Workflows (generated) | `workflows/build.py`, `workflows/bot_js.py`; `--push` loads them into n8n through `tools/n8n_api.py` |

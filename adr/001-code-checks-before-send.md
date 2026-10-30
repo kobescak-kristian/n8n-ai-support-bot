@@ -10,9 +10,9 @@ The bot replies to customers with no person reading each reply first. At
 eval level Critical the default safeguard is "a person approves each send",
 which would remove the point of a support bot (customers wait for a person
 every time). That safeguard was removed on 2026-10-19 on the condition
-that automatic checks stop risky replies (BLUEPRINT.md section 5:
+that automatic checks stop risky replies (eval gate decision:
 `Safeguard removed: human approval before each customer reply, Kristian,
-2026-10-19`; decisions 2 and 3 in section 7). The critical failures the
+2026-10-19`; design decisions in README.md, System). The critical failures the
 safeguard must stop are a made-up fact, a false promise or discount code,
 and a leak (eval config CF1 to CF3).
 
@@ -36,7 +36,7 @@ empty and at most 1,000 characters.
 - **A second AI call judges the reply before sending:** slower and more
   expensive per message, and the judge can itself be wrong in the same ways
   as the writer; its errors would also be hard to explain to a client.
-  Rejected in BLUEPRINT.md decision 2.
+  Rejected on 2026-10-19.
 - **No check, rely on the prompt:** the gated tests include made-up-fact,
   discount and injection bait (F1 to F3); a prompt alone gives no guarantee
   that a number in a reply exists in the articles.

@@ -2,7 +2,7 @@
 
 The API key lives in the git-ignored `.env` at the repository root
 (N8N_URL, N8N_API_KEY; see .env.example). It is read here and never printed.
-Only workflows whose name starts with "Q123 " are touched.
+Only workflows whose name starts with "n8n-support-bot: " are touched.
 """
 import json
 import os
@@ -14,8 +14,9 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 ENV_FILE = ROOT / ".env"
-PREFIX = "Q123 "
-TAG = "q123"
+PREFIX = "n8n-support-bot: "
+TAG = "n8n-support-bot"
+OLD_PREFIX = "Q123 "  # names before 2026-10-30, renamed in place on the next push
 
 
 def load_env():
@@ -82,11 +83,15 @@ class Api:
         return self.request("POST", "/tags", {"name": TAG})["id"]
 
     def push(self, doc, publish=True):
-        """Create or update one Q123 workflow by name; publish and tag it. Returns its id."""
+        """Create or update one bot workflow by name; publish and tag it. Returns its id.
+        A workflow still under its old name (OLD_PREFIX + "Core: answer one message") is updated in place, which
+        renames it, so two workflows never hold the same webhook paths."""
         if not doc["name"].startswith(PREFIX):
-            sys.exit("refusing a workflow without the Q123 prefix: " + doc["name"])
+            sys.exit("refusing a workflow without the prefix " + PREFIX + ": " + doc["name"])
         body = {k: doc[k] for k in ("name", "nodes", "connections", "settings")}
         existing = self.workflow_by_name(doc["name"])
+        if not existing:
+            existing = self.workflow_by_name(OLD_PREFIX + doc["name"][len(PREFIX):].replace(" - ", ": ", 1))
         if existing:
             wid = self.request("PUT", f"/workflows/{existing['id']}", body)["id"]
         else:

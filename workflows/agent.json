@@ -1,5 +1,5 @@
 {
- "name": "Q123 Agent: reply form",
+ "name": "n8n-support-bot: Agent - reply form",
  "nodes": [
   {
    "id": "f7ed2da2-af99-5d75-8605-a3127560a485",
@@ -39,7 +39,7 @@
     "dataTableId": {
      "__rl": true,
      "mode": "name",
-     "value": "q123_messages"
+     "value": "support_bot_messages"
     },
     "returnAll": true,
     "matchType": "allConditions",
@@ -133,7 +133,7 @@
     "dataTableId": {
      "__rl": true,
      "mode": "name",
-     "value": "q123_log"
+     "value": "support_bot_log"
     },
     "returnAll": true,
     "matchType": "allConditions",
@@ -164,7 +164,7 @@
     "dataTableId": {
      "__rl": true,
      "mode": "name",
-     "value": "q123_settings"
+     "value": "support_bot_settings"
     },
     "returnAll": true
    },
@@ -343,7 +343,7 @@
     "dataTableId": {
      "__rl": true,
      "mode": "name",
-     "value": "q123_agent"
+     "value": "support_bot_agent"
     },
     "columns": {
      "mappingMode": "autoMapInputData",

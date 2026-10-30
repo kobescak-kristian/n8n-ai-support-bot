@@ -57,7 +57,8 @@ by the AI): `OFFER_LINE`, `HANDOFF_TEXT`, `SAFETY_TEXT`, `FALLBACK_TEXT`,
    answer needs data the bot cannot see (order, payment, refund or repair
    status, changing an order); a complaint, anger or legal threat; a
    safety issue (battery smoke, heat, swelling, burning smell, fire, an
-   injury); or a check in rule 8 fails. A code pre-check for person
+   injury; v1.12 also blood, fainting, fumes, a car hit, a broken limb, a
+   bulging battery, a hot charger); or a check in rule 8 fails. A code pre-check for person
    requests and safety words (4 languages) runs before the AI. Safety
    words win over everything else (v1.10): in human mode and in a photo
    caption too. The word lists only grow from v1.10, nothing is removed
@@ -79,14 +80,18 @@ by the AI): `OFFER_LINE`, `HANDOFF_TEXT`, `SAFETY_TEXT`, `FALLBACK_TEXT`,
      "notice from Harbour" in 4 languages. A message that only mentions a
      document is left out too, which can send the reply to a person.
      "Artikel", "articolo", "artículo" alone mean "item" and count only
-     with "says / steht / dice" (v1.11);
+     with "says / steht / dice" (v1.11), or after "secondo / laut / según",
+     or with "scritto / heißt es / pone" and similar verbs (v1.12). A number
+     from such a quoted message still backs the reply when an article the
+     reply cites, or an archived article the search found, has it too
+     (v1.12);
    - every cited article ID was really retrieved; the reply is not empty
      and at most 1,000 characters;
    - e-mails and links count as whole items, also links without "http"
      (`www.shop.com/...`) (v1.10);
    - no promise phrase: "I have refunded", "I've cancelled your booking",
      "hemos reembolsado", "as an exception" (v1.10 phrases unchanged, more
-     in v1.11, 4 languages). Policy-like phrases added in v1.11 ("you won't
+     in v1.11 and v1.12, 4 languages). Policy-like phrases added in v1.11 ("you won't
      be charged", "we'll cancel the order", "your refund was processed")
      do not count when a condition or "can't" comes before them in the
      sentence ("If you cancel 24 hours before, you won't be charged", "I
@@ -155,7 +160,10 @@ Each case runs in all 3 runs; a case passes only if it passes in every run.
     correct fact, or (v5) a `dont_know` reply that confirms the premise
     (`grading.confirms_premise`, v6). It confirms when the reply lacks the
     correct fact and one sentence without a phrase of not knowing ("I'm not
-    sure", "I can't confirm", "I don't have information", 4 languages):
+    sure", "I can't confirm", "I don't have information", 4 languages;
+    v7: read per clause, split at "but / ma / aber / pero" and ";", so "I
+    can't see your order, but you're within 60 days" confirms; in a
+    sentence with such a phrase, a clause with "not" does not):
     - states a false number that is not denied ("not 60") and not inside
       a question; or
     - starts with a strong agree word ("Yes,", "That's right", "Sí,",

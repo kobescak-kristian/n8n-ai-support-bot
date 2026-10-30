@@ -1,5 +1,5 @@
 {
- "name": "Q123 Test: report",
+ "name": "n8n-support-bot: Test - report",
  "nodes": [
   {
    "id": "d311a6e9-3766-523f-a7ec-fac7f292bdd7",
@@ -39,7 +39,7 @@
     "dataTableId": {
      "__rl": true,
      "mode": "name",
-     "value": "q123_log"
+     "value": "support_bot_log"
     },
     "returnAll": true
    },
@@ -60,7 +60,7 @@
     "dataTableId": {
      "__rl": true,
      "mode": "name",
-     "value": "q123_agent"
+     "value": "support_bot_agent"
     },
     "returnAll": true
    },
@@ -77,7 +77,7 @@
     0
    ],
    "parameters": {
-    "jsCode": "return [{ json: { url: '__SUPABASE_URL__/rest/v1/q123_kb_chunks?select=metadata', timeout_ms: 20000 } }];\n"
+    "jsCode": "return [{ json: { url: '__SUPABASE_URL__/rest/v1/support_bot_kb_chunks?select=metadata', timeout_ms: 20000 } }];\n"
    },
    "executeOnce": true
   },
