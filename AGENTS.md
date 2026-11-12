@@ -8,13 +8,16 @@ to, never this file.
 
 An n8n support bot for a small business: it answers customers only from the business's own help articles, says "I don't know" instead of guessing, hands the conversation to a person in Slack when needed, logs every answer, and has a WhatsApp-ready entry point. Human overview: `README.md`.
 
+Classification: PROJECT.
+
 ## Authority and conflict handling
 
 | Question | Canonical source |
 |---|---|
 | What the system is and claims | `README.md` |
 | Why a design decision was made | `adr/` |
-| Build status, decisions, change history | `STATE.md` |
+| Build status and open items | `STATE.md` |
+| What changed and when | `README.md` (Version Log), git history |
 | What the implementation actually does | source, tests and configuration inspected together |
 
 When sources disagree: an adopted ADR outranks the text it amends;
@@ -30,7 +33,7 @@ Starting points, not exhaustive reading lists.
 | Task class | Start here |
 |---|---|
 | Understand or explain the system | `README.md` |
-| Current status or decisions | `STATE.md` |
+| Current status or open items | `STATE.md`; decisions: `adr/`, `README.md` (System) |
 | Scope, design rules, decisions | `README.md` (System), `adr/` |
 | Test cases, expected results, behaviour rules | `tests/CASES.md`, `tests/make_cases.py`, `tests/cases/`, `tests/kb/` |
 | Grading and eval gate, recorded runs | `tests/grading.py`, `evals/eval_config.yaml`, `evals/RESULTS.md` |
