@@ -130,7 +130,7 @@ secondary_reported_not_gated:
   seconds_per_reply: "median and 90th percentile seconds from message received to reply sent"
   cost_per_message: "median and total AI cost (Claude + embeddings), from logged tokens and the price list at run date"
   owner_tone_read: "owner reads 10 random answer replies for tone; recorded, not gated, not claimed"
-  manual_slack_pass: "one real Slack handoff by the owner for the Loom; recorded, not gated"
+  manual_slack_pass: "one real Slack handoff by the owner for the demo video; recorded, not gated"
 
 # --- Comparison policy (binding for case files and the grader alike) ---
 comparison_policy:
