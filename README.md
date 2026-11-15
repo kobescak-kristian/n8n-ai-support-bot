@@ -2,6 +2,10 @@
 
 ![n8n AI Support Bot: 0 critical failures, 131 of 133 normal questions right in the worst of 3 test runs](docs/cover.png)
 
+n8n support bot that answers only from a business's own help articles and hands the rest to a person in Slack.
+
+**Status:** Built, 2026-10-30. v0.6.
+
 ## Problem
 Small businesses answer the same customer questions all day on WhatsApp and their website. A chatbot that guesses can state a wrong price or policy, make a promise the business cannot keep, or miss a customer who needs a person.
 
@@ -15,6 +19,21 @@ An n8n support bot that answers customers only from the business's own help arti
 - **WhatsApp-ready:** a WhatsApp Cloud API entry point that checks Meta's signature on every message, answers media with a short text, and answers a message delivered twice only once. Tested against a local stand-in for the WhatsApp API, not a live number.
 
 The demo company is made up (Harbour E-Bikes: 25 help articles on rentals, repairs, delivery, returns and warranty). No real business or customer data is used.
+
+## Outcome
+Tested on 235 made-up customer conversations: 107 written with the build, and 128 in two hidden test sets written and sealed by a separate session that never saw the bot (59 in the first hold-out, 69 in hold-out 2). Every result below is recorded in [evals/RESULTS.md](evals/RESULTS.md), pass or fail.
+
+- **Gated series on version 0.6 (commit 8ddc4a1), 3 full runs of all 235 cases: PASS.** Hold-out 2 was opened for the first time at the start of this series; the first hold-out was already known from earlier series.
+  - 0 critical failures in each run (made-up fact, false promise or discount code, leaked internal note or other customer's data, missed safety or "talk to a person" handoff).
+  - 131 of 133 normal questions passed in all 3 runs (132 of 133 in two of the runs). The pass rule allows up to 3 misses.
+  - Hold-out 2 alone, in every run: 39 of 40 normal questions, 20 of 20 critical cases, 9 of 9 system cases.
+  - Every system case passed in each run (36 of 36): every message logged, every handoff in Slack with the full conversation, outages answered with a fallback message and an alert, WhatsApp replies to the right number.
+- **Speed and cost:** median 2.3 seconds per reply (90th percentile 3.0). AI cost $0.00022 per customer message ($0.184 for the 3 runs, 825 customer messages).
+- **What the tests found, and what changed:**
+  - The first gated series (version 3bb46b1) failed. The bot was right, but one hold-out test case accepted too few ways of saying "no". That case was corrected, with the reason recorded. In that first opening of the hold-out, the bot passed 36 of 36 normal hold-out questions in every run.
+  - The next series (b9dcbda) passed, but the knowledge search failed 6 times (Supabase); each time the customer got the fallback message and an alert. Version a0f05b2 retries the search once and logs the error code: 0 search failures in its 3 runs, which passed with 89 of 91 normal questions (hold-out seen).
+  - After that, four build red teams (adversarial reviews by fresh sessions that read the code and try to break it) found more ways to make the bot fail. The fixes are versions 0.4 to 0.6 in the version log, recorded in [evals/](evals/), and the series above is the first gated test of them.
+  - The reply checks are strict on purpose. Sometimes they block a correct answer, for example "under 18" for an article that says "aged 16 or 17", or "60" in the reply when the customer wrote "sixty". When that happens, the customer gets a person instead of the answer.
 
 ## System
 ![architecture](docs/architecture.png)
@@ -38,33 +57,47 @@ Stack: n8n 2.43.7, Claude Haiku 5.5 (chosen by a model check against Sonnet 5.5 
 
 **Out of scope:** bookings and calendars; reading orders, accounts or a CRM (order questions go to a person); Telegram and Instagram; pushing the person's reply into an open web chat window (the web chat saves it in an outbox table); business-hours logic; more than one company; documents other than Markdown.
 
-## Outcome
-Tested on 235 made-up customer conversations: 107 written with the build, and 128 in two hidden test sets written and sealed by a separate session that never saw the bot (59 in the first hold-out, 69 in hold-out 2). Every result below is recorded in [evals/RESULTS.md](evals/RESULTS.md), pass or fail.
+## Run it
+Requirements: a self-hosted n8n 2.43.7 on `http://localhost:5678`, Python 3.12 with `pyyaml`, Node.js 24 (for the JavaScript checks), and accounts for Anthropic, OpenAI, Supabase and Slack.
 
-- **Gated series on version 0.6 (commit 8ddc4a1), 3 full runs of all 235 cases: PASS.** Hold-out 2 was opened for the first time at the start of this series; the first hold-out was already known from earlier series.
-  - 0 critical failures in each run (made-up fact, false promise or discount code, leaked internal note or other customer's data, missed safety or "talk to a person" handoff).
-  - 131 of 133 normal questions passed in all 3 runs (132 of 133 in two of the runs). The pass rule allows up to 3 misses.
-  - Hold-out 2 alone, in every run: 39 of 40 normal questions, 20 of 20 critical cases, 9 of 9 system cases.
-  - Every system case passed in each run (36 of 36): every message logged, every handoff in Slack with the full conversation, outages answered with a fallback message and an alert, WhatsApp replies to the right number.
-- **Speed and cost:** median 2.3 seconds per reply (90th percentile 3.0). AI cost $0.00022 per customer message ($0.184 for the 3 runs, 825 customer messages).
-- **Known limits from this series:**
-  - A customer asked whether the deposit had been released from their card after a rental. The bot answered with the general rule from the help article (released within 3 working days) instead of handing off, in all 3 runs. No wrong fact, but a customer's own payment is for a person to check. Not fixed yet: a fix means a new version and a new gated series.
-  - Asked for a bike's motor brand and suspension fork, the bot gave the one fact the articles hold and said it does not have the rest, but sent it as an answer instead of "I don't know" (1 of 3 runs).
-- **What the tests found, and what changed:**
-  - The first gated series (version 3bb46b1) failed. The bot was right, but one hold-out test case accepted too few ways of saying "no". That case was corrected, with the reason recorded. In that first opening of the hold-out, the bot passed 36 of 36 normal hold-out questions in every run.
-  - The next series (b9dcbda) passed, but the knowledge search failed 6 times (Supabase); each time the customer got the fallback message and an alert. Version a0f05b2 retries the search once and logs the error code: 0 search failures in its 3 runs, which passed with 89 of 91 normal questions (hold-out seen).
-  - After that, four build red teams (adversarial reviews by fresh sessions that read the code and try to break it) found more ways to make the bot fail. The fixes are versions 0.4 to 0.6 in the version log, recorded in [evals/](evals/), and the series above is the first gated test of them.
-  - The reply checks are strict on purpose. Sometimes they block a correct answer, for example "under 18" for an article that says "aged 16 or 17", or "60" in the reply when the customer wrote "sixty". When that happens, the customer gets a person instead of the answer.
+1. **Supabase.** Run [`supabase/setup.sql`](supabase/setup.sql) once in the SQL Editor of your Supabase project. It creates the article table with pgvector and the search function.
+2. **n8n credentials.** Create four credentials in n8n: Anthropic, OpenAI, Supabase and Slack. Give them the names listed in `OWNER_CREDS` in [`workflows/build.py`](workflows/build.py).
+3. **Environment file.** Copy `.env.example` to `.env` and fill in the values it lists: the n8n API key (n8n Settings > n8n API), the test-only keys and passwords, and your Supabase project URL.
+4. **Import and publish.** `python workflows/build.py --push` creates the test-only credentials from `.env`, imports all 9 workflows through the n8n API and publishes them. Without `--push` it only rebuilds the files in `workflows/`.
+5. **Tables and articles.** Run the workflow "Setup - create tables" once. Then `python tools/index_kb.py` loads the help articles from `tests/kb/` into Supabase.
+
+**Checks without accounts** (the same checks CI runs on Linux, macOS and Windows):
+
+```bash
+python tests/test_grading.py
+python tests/test_runner.py
+python tests/test_bot_js.py
+python tests/runner.py score --labels gated-h2-1 gated-h2-2 gated-h2-3
+```
+
+The last command re-derives the gate verdict (PASS) from the committed result files.
+
+**Full test run** (needs the setup above): start the local WhatsApp stand-in with `python tests/mock_whatsapp.py`, then run `python tests/runner.py run --label <name>`. Combine 3 runs into a verdict with `python tests/runner.py score --labels <run-1> <run-2> <run-3>`.
+
+## Limitations
+Known limits from the gated series:
+
+- A customer asked whether the deposit had been released from their card after a rental. The bot answered with the general rule from the help article (released within 3 working days) instead of handing off, in all 3 runs. No wrong fact, but a customer's own payment is for a person to check. Not fixed yet: a fix means a new version and a new gated series.
+- Asked for a bike's motor brand and suspension fork, the bot gave the one fact the articles hold and said it does not have the rest, but sent it as an answer instead of "I don't know" (1 of 3 runs).
 
 **Not tested:** real customers and real traffic volumes; a live WhatsApp number (needs a Meta business account and a public URL); knowledge bases larger or messier than 25 short articles; languages other than English, Italian, Spanish and German; the tone and helpfulness of answers (not measured, so not claimed).
 
 ## Version Log
 | version | date | change |
 |---|---|---|
-| 0.0 | 2026-10-19 | Scaffold; eval gate and 97 test cases written before the build; 59 hold-out cases sealed by a separate session |
-| 0.1 | 2026-10-20 | Workflows built and tested; first gated series FAIL (test case wording, corrected by a recorded decision) |
-| 0.2 | 2026-10-20 | Gated series PASS on b9dcbda (hold-out seen) |
-| 0.3 | 2026-10-21 | Retry on the knowledge search, error codes in the log, gate v3; gated series PASS on a0f05b2 (hold-out seen) |
-| 0.4 | 2026-10-29 | First build red team: safety words now win in human mode and in photo captions, the safety steps stay when Slack is down, quoted shop documents no longer count as facts, stricter link and promise checks; 10 test cases added; new hidden test set sealed. Visible run: 0 critical failures, 57 of 57 normal questions (not gated) |
-| 0.5 | 2026-10-29 | Second and third build red teams: more danger, person and promise phrasings in 4 languages (these word lists only grow), codes and links only the customer wrote are blocked, stricter test runner |
 | 0.6 | 2026-10-30 | Last build red team: missing emergency words (blood, fainting, fumes ...), quoted articles in Italian, German and Spanish, more promise phrasings, a stricter premise check in the grader. Gated series PASS on 8ddc4a1 with hold-out 2 (2026-10-30) |
+| 0.5 | 2026-10-29 | Second and third build red teams: more danger, person and promise phrasings in 4 languages (these word lists only grow), codes and links only the customer wrote are blocked, stricter test runner |
+| 0.4 | 2026-10-29 | First build red team: safety words now win in human mode and in photo captions, the safety steps stay when Slack is down, quoted shop documents no longer count as facts, stricter link and promise checks; 10 test cases added; new hidden test set sealed. Visible run: 0 critical failures, 57 of 57 normal questions (not gated) |
+| 0.3 | 2026-10-21 | Retry on the knowledge search, error codes in the log, gate v3; gated series PASS on a0f05b2 (hold-out seen) |
+| 0.2 | 2026-10-20 | Gated series PASS on b9dcbda (hold-out seen) |
+| 0.1 | 2026-10-20 | Workflows built and tested; first gated series FAIL (test case wording, corrected by a recorded decision) |
+| 0.0 | 2026-10-19 | Scaffold; eval gate and 97 test cases written before the build; 59 hold-out cases sealed by a separate session |
+
+## License
+
+Apache License 2.0. See [LICENSE](LICENSE).
